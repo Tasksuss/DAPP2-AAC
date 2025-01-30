@@ -26,3 +26,9 @@ Links to resources:
     Pypi gTTS Package (Not real Google Translate): https://pypi.org/project/gTTS/
     
     gTTS Documentations: https://gtts.readthedocs.io/en/latest/
+
+    Raspberry Pi Bluetooth: https://www.sunfounder.com/blogs/news/mastering-raspberry-pi-bluetooth-a-comprehensive-guide-to-setup-use-cases-and-troubleshooting
+
+    Raspberry Pi Documentation and Installation: https://www.raspberrypi.com/documentation/computers/getting-started.html#installing-the-operating-system
+
+    
