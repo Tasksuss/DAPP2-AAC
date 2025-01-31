@@ -6,8 +6,9 @@ The project's software contains the following modules:
     Text-to-Speech Module: Converts text input into speech output.
     Eye-Tracking Module: Handles eye movement detection and gaze tracking.
     IMU Module: Processes head movement data for additional input commands.
-    Commuincation Module: Handles data transfer between the Raspberry Pi and Google Glass.
-
+    Main Program: Implement the logic and functionality behind UI with OOP.
+    Commuincation and Integration Module: Handles data transfer between the Raspberry Pi and Google Glass.
+    Bluetooth Communication: Alternative for pairing devices and extension such as a speaker.
 
 The communication module will be the most difficult to code, since developers need to refer to multiple APIs from Google, Rasperries Pi, and others to ensure the smooth communication; The Eye-tracking and IMU will be the second and third hard module because they need to handle input data in its raw form and will need to be programmed in lower-level language; The UI and TTS module are easier and can be written in Python leveraged on the existing packages ready to be installed.
 
