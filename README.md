@@ -26,10 +26,36 @@ Links to resources:
     
     Pypi gTTS Package (Not real Google Translate): https://pypi.org/project/gTTS/
     
-    gTTS Documentations: https://gtts.readthedocs.io/en/latest/
+    gTTS (Google Text-to-speech), can be used for generating MP3 files: https://gtts.readthedocs.io/en/latest/
 
     Raspberry Pi Bluetooth: https://www.sunfounder.com/blogs/news/mastering-raspberry-pi-bluetooth-a-comprehensive-guide-to-setup-use-cases-and-troubleshooting
 
     Raspberry Pi Documentation and Installation: https://www.raspberrypi.com/documentation/computers/getting-started.html#installing-the-operating-system
+
+    Raspberry Pi Open Source AR Glasses: https://gitee.com/shiliupi/OpenEyeTap/issues/I4JVUE
+
+    基于树莓派的VR设备：https://blog.csdn.net/weixin_44040217/article/details/107254341
+
+    基于树莓派和Vufine屏的谷歌眼镜：https://make.quwj.com/project/144
+
+    树莓派相关项目（代码示例）：https://www.eetree.cn/doc/detail/572
+
+    树莓派平台资源大全：https://www.eetree.cn/wiki/rpi
+
+    OpenEyeTap：基于树莓派的开源AR智能眼镜：https://gitee.com/shiliupi/OpenEyeTap/issues/I4JVUE
+
+    GPIO Zero, Python module, Can be used for LED control on Pi: https://gpiozero.readthedocs.io/en/stable/installing.html
+
+    EyeTracking using OpenCV Blogs
+        https://medium.com/analytics-vidhya/eye-tracking-using-opencv-2f40cc09183c
+        https://medium.com/@amit25173/opencv-eye-tracking-aeb4f1b46aa3
+
+    PyBluez, Bluetooth access: https://github.com/pybluez/pybluez
+
+    MediaPipe, a ML solution for eyetracking and depth estimation: https://github.com/google-ai-edge/mediapipe/blob/master/docs/solutions/iris.md
+
+    
+
+
 
     
