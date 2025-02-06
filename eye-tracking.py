@@ -1,5 +1,5 @@
-import cv2
-import pyautogui
+import cv2   #Camera analog-to-digital
+import pyautogui  #Control input of computer ei: move mouse
 import numpy as np
 
 # Initialize video capture and screen dimensions
