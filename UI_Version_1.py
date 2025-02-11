@@ -17,20 +17,21 @@ class AAC_GUI():
 
     RIGHT: list[str] = ['a', 'e', 'i', 'o', 'u']
 
-    TOP: list[str] = ["s", "t", "n", "r", "d", "l", "c"]
+    TOP: list[str] = ["s", "t", "n", "r", "d", "l", "h"]
 
-    LEFT: list[str] = ["m", "w", "f", "g", "y", "p", "b"]
+    LEFT: list[str] = ["c", "w", "m", "g", "y", "p", "f"]
 
-    BOTTOM: list[str] = ["j", "q", "k", "e", "g", "t", "p"]
+    BOTTOM: list[str] = ["j", "b", "q", "k", "v", "z", "x"]
 
     COLORS: {str:str} = {
         "background": "black",
-        "border": "blue",
+        "border": "dark blue",
         "highlight": "yellow",
+        "text": "white",
+        "ring": "steel blue",
         "confirm": "green",
         "cancel": "red",
-        "return": "gray",
-        "text": "white"
+        "side": "dark gray"
     }
 
     FONT: {str: int} = {
@@ -61,7 +62,6 @@ class AAC_GUI():
         self.compute_character_positions()
         self.setup_UI()
 
-
     def compute_character_positions(self) -> None:
         """
         Precomputes positions for all characters and buttons.
@@ -75,9 +75,9 @@ class AAC_GUI():
         ### --- MAIN VIEW: Cluster Letters in 45-degree Sectors --- ###
         sector_angles = {
             "RIGHT": (-22.5, 22.5),
-            "TOP": (67.5, 112.5),
-            "LEFT": (157.5, 202.5),
-            "BOTTOM": (247.5, 292.5),
+            "TOP": (60, 120),
+            "LEFT": (150, 210),
+            "BOTTOM": (240, 300),
         }
 
         # Cluster letters inside 45-degree sectors
@@ -138,33 +138,56 @@ class AAC_GUI():
         self.create_ring()
         self.create_circle()
 
-    def on_clicked(self, event):
-        """
-        Substitute for the hover function, will be implemented with the IMU input in the future
-        """
-        pass
-
     def create_side(self):
-        """Creates the four side buttons with borders."""
-        for button, (x, y) in self.character_positions.items():
-            if "BUTTON" in button:
-                self.canvas.create_rectangle(x - 150, y - 150, x + 150, y + 150, outline=self.COLORS["border"],
-                                             fill=self.COLORS["background"], width=3)
-                self.canvas.create_text(x, y, text=button[0], fill=self.COLORS["text"],
-                                        font=("Arial", self.FONT["middle"]))
+        """Creates the four side buttons with explicitly defined positions and colors."""
+        # Define explicit positions for each button
+        num_x, num_y = self.character_positions["NUM", "BUTTON"]
+        return_x, return_y = self.character_positions["⟲", "BUTTON"]
+        confirm_x, confirm_y = self.character_positions["✔", "BUTTON"]
+        cancel_x, cancel_y = self.character_positions["X", "BUTTON"]
+
+        # Draw NUM button
+        self.canvas.create_rectangle(num_x - 150, num_y - 150, num_x + 150, num_y + 150,
+                                     outline=self.COLORS["border"], fill=self.COLORS["side"], width=3)
+        self.canvas.create_text(num_x, num_y, text="NUM", fill=self.COLORS["text"],
+                                font=("Arial", self.FONT["middle"]))
+
+        # Draw Return button
+        self.canvas.create_rectangle(return_x - 150, return_y - 150, return_x + 150, return_y + 150,
+                                     outline=self.COLORS["border"], fill=self.COLORS["side"], width=3)
+        self.canvas.create_text(return_x, return_y, text="⟲", fill=self.COLORS["text"],
+                                font=("Arial", self.FONT["middle"]))
+
+        # Draw Confirm button
+        self.canvas.create_rectangle(confirm_x - 150, confirm_y - 150, confirm_x + 150, confirm_y + 150,
+                                     outline=self.COLORS["border"], fill=self.COLORS["side"], width=3)
+        self.canvas.create_text(confirm_x, confirm_y, text="✔", fill=self.COLORS["confirm"],
+                                font=("Arial", self.FONT["middle"]))
+
+        # Draw Cancel button
+        self.canvas.create_rectangle(cancel_x - 150, cancel_y - 150, cancel_x + 150, cancel_y + 150,
+                                     outline=self.COLORS["border"], fill=self.COLORS["side"], width=3)
+        self.canvas.create_text(cancel_x, cancel_y, text="X", fill=self.COLORS["cancel"],
+                                font=("Arial", self.FONT["middle"]))
 
     def create_ring(self):
         """Draws the four-sectioned ring with arcs."""
         self.canvas.create_oval(100, 100, 400, 400, outline=self.COLORS["border"],
                                 fill=self.COLORS["background"], width=3)
-        self.canvas.create_arc(100, 100, 400, 400, start=315, extent=45, outline=self.COLORS["border"],
-                               fill=self.COLORS["background"], width=3)
-        self.canvas.create_arc(100, 100, 400, 400, start=45, extent=135, outline=self.COLORS["border"],
-                               fill=self.COLORS["background"], width=3)
-        self.canvas.create_arc(100, 100, 400, 400, start=135, extent=225, outline=self.COLORS["border"],
-                               fill=self.COLORS["background"], width=3)
-        self.canvas.create_arc(100, 100, 400, 400, start=225, extent=315, outline=self.COLORS["border"],
-                               fill=self.COLORS["background"], width=3)
+
+        self.canvas.create_arc(100, 100, 400, 400, start=315, extent=90, outline=self.COLORS["border"],
+                               fill=self.COLORS["ring"], width=3)
+        self.canvas.create_arc(100, 100, 400, 400, start=45, extent=90, outline=self.COLORS["border"],
+                               fill=self.COLORS["ring"], width=3)
+        self.canvas.create_arc(100, 100, 400, 400, start=135, extent=90, outline=self.COLORS["border"],
+                               fill=self.COLORS["ring"], width=3)
+        self.canvas.create_arc(100, 100, 400, 400, start=225, extent=90, outline=self.COLORS["border"],
+                               fill=self.COLORS["ring"], width=3)
+
+
+        #self.canvas.create_line(250, 100, 250, 400, fill=self.COLORS["border"], width=3)  # Vertical divider
+        #self.canvas.create_line(100, 250, 400, 250, fill=self.COLORS["border"], width=3)  # Horizontal divider
+
         for char, (x, y) in self.character_positions.items():
             if "MAIN" in char:
                 self.canvas.create_text(x, y, text=char[0], fill=self.COLORS["text"], font=("Arial", self.FONT["middle"]))
@@ -175,6 +198,7 @@ class AAC_GUI():
                                 fill=self.COLORS["background"], width=3)
         self.canvas.create_text(250, 250, text=self.current_text, font=("Arial", self.FONT["large"]),
                                 fill=self.COLORS["text"], tags="text")
+
 
     def update_display(self, option: str) -> None:
         """
@@ -230,26 +254,6 @@ class AAC_GUI():
         self.current_text += char
         self.update_display(self.state)
 
-    def start_hover(self, option: str):
-        """Gradually brightens the hovered option over 2 seconds. If fully highlighted, auto-selects the option."""
-        self.hover_time[option] = time.time()
-
-        def check_hover():
-            elapsed = time.time() - self.hover_time.get(option, 0)
-            if elapsed >= 2:
-                self.select_option(option)
-            else:
-                brightness = int(255 * (elapsed / 2))
-                self.canvas.itemconfig(option, fill=f"#{brightness:02x}{brightness:02x}00")
-                self.root.after(100, check_hover)
-        check_hover()
-
-    def reset_hover(self, option: str):
-        """If cursor leaves before 2 seconds, resets brightness"""
-        if option in self.hover_time:
-            del self.hover_time[option]
-        self.canvas.itemconfig(option, fill=self.COLORS["text"])
-
     def confirm_text(self) -> None:
         self.tts(self.current_text)
         self.current_text = ""
@@ -283,7 +287,7 @@ class AAC_GUI():
                 if not self.current_text:
                     self.current_text = "Yes"
                 elif self.current_text[-1] == " ":
-                    self.tts(self.current_text.strip())  # Speak and clear text
+                    self.confirm_text()  # Speak and clear text
                     self.current_text = ""
                 else:
                     self.current_text += " "  # Add space before confirming
@@ -293,6 +297,33 @@ class AAC_GUI():
                 else:
                     self.current_text = self.current_text[:-1]  # Delete last char
         self.update_display(self.state)
+
+    def on_clicked(self, event):
+        """
+        Substitute for the hover function, will be implemented with the IMU input in the future
+        """
+        pass
+
+    def start_hover(self, option: str):
+        """Gradually brightens the hovered option over 2 seconds. If fully highlighted, auto-selects the option."""
+        self.hover_time[option] = time.time()
+
+        def check_hover():
+            elapsed = time.time() - self.hover_time.get(option, 0)
+            if elapsed >= 2:
+                self.select_option(option)
+            else:
+                brightness = int(255 * (elapsed / 2))
+                self.canvas.itemconfig(option, fill=f"#{brightness:02x}{brightness:02x}00")
+                self.root.after(100, check_hover)
+
+        check_hover()
+
+    def reset_hover(self, option: str):
+        """If cursor leaves before 2 seconds, resets brightness"""
+        if option in self.hover_time:
+            del self.hover_time[option]
+        self.canvas.itemconfig(option, fill=self.COLORS["text"])
 
     @staticmethod
     def tts(input_text: str) -> None:
