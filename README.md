@@ -54,6 +54,7 @@ Links to resources:
 
     MediaPipe, a ML solution for eyetracking and depth estimation: https://github.com/google-ai-edge/mediapipe/blob/master/docs/solutions/iris.md
 
+    OpenCV Meanshift and CAMshift: https://docs.opencv.org/3.4/d7/d00/tutorial_meanshift.html
     
 
 
