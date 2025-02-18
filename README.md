@@ -56,7 +56,7 @@ Links to resources:
 
     OpenCV Meanshift and CAMshift: https://docs.opencv.org/3.4/d7/d00/tutorial_meanshift.html
     
-
+    Filterpy Package: https://filterpy.readthedocs.io/en/latest/
 
 
     
