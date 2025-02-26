@@ -1,87 +1,91 @@
-import cv2   #Camera analog-to-digital
-import pyautogui  #Control input of computer ei: move mouse
-import numpy as np
+import cv2
+import pyautogui
+from gaze_tracking import GazeTracking
 
-# Initialize video capture and screen dimensions
-cap = cv2.VideoCapture(0)
-screen_w, screen_h = pyautogui.size()
-
-# Load Haar cascades for face and eye detection
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
+# Initialize gaze tracking and webcam
+gaze = GazeTracking()
+webcam = cv2.VideoCapture(0)
 
 # Configuration parameters
-SMOOTHING_FACTOR = 0.5  # Between 0 and 1 (higher = smoother)
-MOVEMENT_SCALE = 2.5  # Adjust sensitivity of eye movement to mouse movement
+SMOOTHING_FACTOR = 0.8  # Between 0 and 1 (higher = smoother)
+MOVEMENT_SCALE = 30     # Adjust sensitivity of eye movement to mouse movement
+
+# Get screen dimensions
+screen_width, screen_height = pyautogui.size()
+
+# Calculate screen center
+center_x, center_y = screen_width // 2, screen_height // 2
 
 # Initialize variables for smoothing
-screen_x, screen_y = pyautogui.position()
-prev_eyes = []
+prev_x, prev_y = 0, 0  # Start at the center (0,0) in the new coordinate system
 
 while True:
-    ret, frame = cap.read()
-    if not ret:
+    _, frame = webcam.read()
+
+    # We send this frame to GazeTracking to analyze it
+    gaze.refresh(frame)
+
+    frame = gaze.annotated_frame()
+    text = ""
+
+    if gaze.is_blinking():
+        text = "Blinking"
+    elif gaze.is_right():
+        text = "Looking right"
+    elif gaze.is_left():
+        text = "Looking left"
+    elif gaze.is_center():
+        text = "Looking center"
+
+    cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (147, 58, 31), 2)
+
+    left_pupil = gaze.pupil_left_coords()
+    right_pupil = gaze.pupil_right_coords()
+    cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+    cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+
+    # Analyze the frame using GazeTracking
+    gaze.refresh(frame)
+    frame = gaze.annotated_frame()
+
+    # Get the pupil coordinates
+    left_pupil = gaze.pupil_left_coords()
+    right_pupil = gaze.pupil_right_coords()
+
+    # Use left pupil coordinates if available
+    if left_pupil is not None:
+        # Map pupil coordinates to screen coordinates
+        screen_x = int((left_pupil[0] / frame.shape[1]) * screen_width)
+        screen_y = int((left_pupil[1] / frame.shape[0]) * screen_height)
+
+        # Invert the x-axis movement
+        inverted_x = screen_width - screen_x
+
+        # Adjust coordinates so that center of the screen is (0,0)
+        adjusted_x = inverted_x - center_x
+        adjusted_y = screen_y - center_y
+
+        # Apply movement scaling
+        adjusted_x = int(adjusted_x * MOVEMENT_SCALE)
+        adjusted_y = int(adjusted_y * MOVEMENT_SCALE)
+
+        # Apply smoothing to the mouse movement
+        smoothed_x = int(prev_x * SMOOTHING_FACTOR + adjusted_x * (1 - SMOOTHING_FACTOR))
+        smoothed_y = int(prev_y * SMOOTHING_FACTOR + adjusted_y * (1 - SMOOTHING_FACTOR))
+
+        # Move the mouse cursor
+        pyautogui.moveTo(center_x + smoothed_x, center_y + smoothed_y)
+
+        # Update previous position for smoothing
+        prev_x, prev_y = smoothed_x, smoothed_y
+
+    # Display the annotated frame
+    cv2.imshow("Demo", frame)
+
+    # Exit on pressing the 'Esc' key
+    if cv2.waitKey(1) == 27:
         break
 
-    # Flip frame horizontally and convert to grayscale
-    frame = cv2.flip(frame, 1)
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    # Detect faces
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-
-    for (x, y, w, h) in faces:
-        # Extract face ROI
-        roi_gray = gray[y:y + h, x:x + w]
-        roi_color = frame[y:y + h, x:x + w]
-
-        # Detect eyes within face region
-        eyes = eye_cascade.detectMultiScale(roi_gray)
-
-        if len(eyes) >= 2:
-            # Sort eyes by x-coordinate and take first two
-            eyes = sorted(eyes, key=lambda x: x[0])[:2]
-            current_eyes = []
-
-            for (ex, ey, ew, eh) in eyes:
-                # Calculate eye centers relative to full frame
-                eye_center = (x + ex + ew // 2, y + ey + eh // 2)
-                current_eyes.append(eye_center)
-
-                # Draw eye markers (optional)
-                cv2.circle(frame, eye_center, 5, (0, 255, 0), -1)
-
-            if prev_eyes:
-                # Calculate average movement between frames
-                delta_x = (current_eyes[0][0] + current_eyes[1][0] -
-                           prev_eyes[0][0] - prev_eyes[1][0]) / 2
-                delta_y = (current_eyes[0][1] + current_eyes[1][1] -
-                           prev_eyes[0][1] - prev_eyes[1][1]) / 2
-
-                # Scale deltas to screen dimensions
-                delta_x = delta_x * (screen_w / frame.shape[1]) * MOVEMENT_SCALE
-                delta_y = delta_y * (screen_h / frame.shape[0]) * MOVEMENT_SCALE
-
-                # Apply smoothing
-                screen_x = screen_x * SMOOTHING_FACTOR + (screen_x + delta_x) * (1 - SMOOTHING_FACTOR)
-                screen_y = screen_y * SMOOTHING_FACTOR + (screen_y + delta_y) * (1 - SMOOTHING_FACTOR)
-
-                # Keep cursor within screen bounds
-                screen_x = max(0, min(screen_w, screen_x))
-                screen_y = max(0, min(screen_h, screen_y))
-
-                # Move mouse
-                pyautogui.moveTo(screen_x, screen_y)
-
-            prev_eyes = current_eyes
-
-    # Display frame (optional)
-    cv2.imshow('Eye Tracking', frame)
-
-    # Exit on 'q' key press
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-# Cleanup
-cap.release()
+# Release the webcam and close the window
+webcam.release()
 cv2.destroyAllWindows()
