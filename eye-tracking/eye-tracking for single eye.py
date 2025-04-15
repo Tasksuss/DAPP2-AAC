@@ -1,52 +1,46 @@
 import cv2
-from scipy.spatial import distance as dist
 from collections import deque
 import numpy as np
 
-# Keep last N eye positions for smoothing
+# Initialize a deque to store the last N eye positions for smoothing
 eye_buffer = deque(maxlen=5)
 
-# Load the eye cascade classifier
+# Load the pre-trained Haar Cascade classifier for eye detection
 eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
 
 # Initialize video capture
 cap = cv2.VideoCapture("example 2.mov")  # Use 0 for webcam
 
+def estimate_eye_closed(eye_frame):
+    """Estimate if the eye is closed based on the darkness ratio."""
+    gray = cv2.cvtColor(eye_frame, cv2.COLOR_BGR2GRAY)
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    _, thresh = cv2.threshold(blur, 50, 255, cv2.THRESH_BINARY)
 
-def calculate_ear(eye):
-    # Calculate the Eye Aspect Ratio (EAR)
-    A = dist.euclidean(eye[1], eye[5])
-    B = dist.euclidean(eye[2], eye[4])
-    C = dist.euclidean(eye[0], eye[3])
-    ear = (A + B) / (2.0 * C)
-    return ear
+    black_pixels = np.sum(thresh == 0)
+    total_pixels = thresh.size
+    darkness_ratio = black_pixels / total_pixels
 
+    return darkness_ratio > 0.6  # Adjust this threshold as needed
 
 def track_pupil(eye_frame):
-    # Track the pupil by finding contours in the eye area
+    """Track the pupil's position within the eye frame."""
     gray = cv2.cvtColor(eye_frame, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (7, 7), 0)
-
-    # Binary thresholding: pupils are dark so invert the binary mask
     _, thresh = cv2.threshold(blurred, 30, 255, cv2.THRESH_BINARY_INV)
 
-    # Find all contours
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
     if not contours:
         return None
 
-    # Find the largest contour by area
     max_contour = max(contours, key=cv2.contourArea)
     max_area = cv2.contourArea(max_contour)
 
-    # Filter: ignore if area is too small or too large (noise)
     h, w = eye_frame.shape[:2]
     frame_area = w * h
     if max_area < frame_area * 0.01 or max_area > frame_area * 0.5:
-        return None  # too small or too large to be the pupil
+        return None
 
-    # Compute center of the contour
     M = cv2.moments(max_contour)
     if M["m00"] == 0:
         return None
@@ -54,11 +48,16 @@ def track_pupil(eye_frame):
     cx = int(M["m10"] / M["m00"])
     cy = int(M["m01"] / M["m00"])
 
-    # Draw dot on pupil center
     cv2.circle(eye_frame, (cx, cy), 3, (255, 0, 0), -1)
 
     return (cx, cy)
 
+def median_smooth_position(eye_buffer):
+    """Smooth the eye position using median filtering on the last N frames."""
+    if len(eye_buffer) > 1:
+        smoothed_position = np.median(np.array(eye_buffer), axis=0).astype(int)
+        return smoothed_position
+    return eye_buffer[-1]
 
 while True:
     ret, frame = cap.read()
@@ -69,57 +68,57 @@ while True:
     eyes = eye_cascade.detectMultiScale(gray, 1.3, 5)
 
     if len(eyes) > 0:
-        # Get the largest eye
         largest_eye = max(eyes, key=lambda e: e[2] * e[3])
         eye_buffer.append(largest_eye)
 
-        # Average the positions from the buffer for stability
-        avg_eye = np.mean(eye_buffer, axis=0).astype(int)
+        # Apply median smoothing to the eye position
+        avg_eye = median_smooth_position(eye_buffer)
         ex, ey, ew, eh = avg_eye
 
-        # Compute center for EAR (unchanged)
+        # Define crop size around center of the eye
+        crop_w, crop_h = ew, eh
         center_x = ex + ew // 2
         center_y = ey + eh // 2
 
-        # EAR landmarks (fake points for demonstration)
-        eye_landmarks = [
-            (ex, ey + eh // 2),
-            (ex + ew // 3, ey),
-            (ex + 2 * ew // 3, ey),
-            (ex + ew, ey + eh // 2),
-            (ex + 2 * ew // 3, ey + eh),
-            (ex + ew // 3, ey + eh)
-        ]
-        ear = calculate_ear(eye_landmarks)
-        print(f'EAR: {ear:.2f}')
+        # Calculate crop region around eye center
+        crop_x1 = max(center_x - crop_w // 2, 0)
+        crop_y1 = max(center_y - crop_h // 2, 0)
+        crop_x2 = min(crop_x1 + crop_w, frame.shape[1])
+        crop_y2 = min(crop_y1 + crop_h, frame.shape[0])
 
-        # Check if the eye is closed based on EAR (EAR < 0.2 is considered closed)
-        if ear < 0.2:
-            cv2.putText(frame, "Eye is closed", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        eye_frame = frame[crop_y1:crop_y2, crop_x1:crop_x2].copy()
+
+        if estimate_eye_closed(eye_frame):
+            cv2.putText(frame, "Eye is closed", (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                        1, (0, 0, 255), 2)
             print("Eye is closed")
-            # Skip further processing if the eye is closed
+            cv2.imshow("Frame", frame)
+            if cv2.waitKey(1) & 0xFF == 27:
+                break
             continue
 
-        # Track the pupil in the detected eye region
-        eye_frame = frame[ey:ey + eh, ex:ex + ew]
+        # Pupil tracking
         pupil_center = track_pupil(eye_frame)
-
         if pupil_center:
             pcx, pcy = pupil_center
+            center_x = ew // 2
+            center_y = eh // 2
             offset_x = pcx - center_x
             offset_y = pcy - center_y
 
             cv2.circle(eye_frame, (pcx, pcy), 4, (255, 0, 0), -1)
-            cv2.putText(eye_frame, f"Pupil: ({pcx}, {pcy})", (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255),
-                        1)
+            # Normalize pupil position to [0, 1] based on cropped area size
+            rel_x = pcx / (crop_x2 - crop_x1)
+            rel_y = pcy / (crop_y2 - crop_y1)
+
+            # Draw normalized position as text
+            cv2.putText(eye_frame, f"Norm: ({rel_x:.2f}, {rel_y:.2f})", (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45,
+                        (255, 255, 255), 1)
             cv2.putText(eye_frame, f"Offset: ({offset_x}, {offset_y})", (5, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.45,
                         (0, 255, 255), 1)
 
-        # Show the cropped eye frame with pupil detection
+        # Show cropped eye frame
         cv2.imshow('Tracked Eye Only', eye_frame)
-
-    # # Show the full frame with the "Eye is closed" message
-    # cv2.imshow("Frame", frame)
 
     if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
         break
