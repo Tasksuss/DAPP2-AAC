@@ -14,8 +14,8 @@ def classify_point(x, y):
     dy = y - cy
     dist = math.hypot(dx, dy)
 
-    inner_radius = 0.2*a    # inner circle
-    outer_radius = 0.35*a     # middle circle
+    inner_radius = 0.3*a    # inner circle
+    outer_radius = 0.4*a     # middle circle
 
     # comfirm whether in inner circle
     if dist <= inner_radius:
@@ -52,12 +52,8 @@ class Calibration:
         if os.path.exists(CALIBRATION_FILE):
             with open(CALIBRATION_FILE, 'r') as f:
                 self.corners = json.load(f)
-                print("[INFO] Loaded calibration data.")
-        else:
-            print("[INFO] No calibration data found. Please run calibration.")
 
     def calibrate(self, gaze_generator):
-        print("Calibration: Look at the prompted corner and press ENTER to capture gaze.")
         self.corners = {}
 
         for label in corner_labels:
@@ -105,7 +101,6 @@ if __name__ == "__main__":
             try:
                 data = json.load(f)
                 if data:
-                    print("[INFO] Existing calibration data found. Deleting it...")
                     os.remove(calib_file)
             except json.JSONDecodeError:
                 print("[WARNING] Calibration file exists but is invalid. Recreating it.")
@@ -114,7 +109,6 @@ if __name__ == "__main__":
     # Create a new Calibration instance (which loads fresh or empty)
     calib = Calibration()
 
-    print("[INFO] Running calibration...")
     calib.calibrate(stream)
 
     # Save the new calibration data
