@@ -3,6 +3,7 @@ from collections import deque
 import numpy as np
 import math
 import time
+
 # Initialize a deque to store the last N eye positions for smoothing
 eye_buffer = deque(maxlen=5)
 
@@ -15,75 +16,54 @@ cap = cv2.VideoCapture(0)  # Use 0 for webcam
 def classify_point(x, y):
     a = 0.75
     cx, cy = 0.5, 0.5
+    dx = x - cx
+    dy = y - cy
+    dist = math.hypot(dx, dy)
 
-    r1 = 0.15*a  # inner circle
-    r2 = 0.3*a   # outer circle
-    
-    # distance from center
-    dist = math.hypot(x - cx, y - cy)
+    inner_radius = 0.1*a    # inner circle
+    outer_radius = 0.3*a     # middle circle
 
-    if dist <= r1:
-        region_type = "inner circle"
-    elif dist <= r2:
-        region_type = "outer circle"
+    # comfirm whether in inner circle
+    if dist <= inner_radius:
+        return "inner circle"
+
+    # comfirm whether in outer circle
+    elif dist <= outer_radius:
+        angle = math.degrees(math.atan2(-dy, dx)) % 360  # clockwise from right
+        if 45 <= angle < 135:
+            return "top ring"      # h l d r n t s
+        elif 135 <= angle < 225:
+            return "left ring"     # c w m g y p f
+        elif 225 <= angle < 315:
+            return "bottom ring"   # j b q k v z x
+        else:
+            return "right ring"    # u o i e a
+
+    # outer circle
     else:
-        region_type = "outside"
-
-    if x < cx and y > cy:
-        quadrant = "top-left"
-    elif x > cx and y > cy:
-        quadrant = "top-right"
-    elif x < cx and y < cy:
-        quadrant = "bottom-left"
-    elif x > cx and y < cy:
-        quadrant = "bottom-right"
-    elif x == cx and y == cy:
-        quadrant = "center"
-    elif x == cx:
-        quadrant = "vertical line"
-    elif y == cy:
-        quadrant = "horizontal line"
-    else:
-        quadrant = "unknown"
-    if region_type == "outside" and quadrant == "top-left":
-        region = "A"
-    elif region_type == "outside" and quadrant == "top-right":
-        region = "B"
-    elif region_type == "outside" and quadrant == "bottom-left":
-        region = "C"
-    elif region_type == "outside" and quadrant == "bottom-right":
-        region = "D"
-    elif region_type == "outer circle" and quadrant == "top-left":
-        region = "E"
-    elif region_type == "outer circle" and quadrant == "top-right":
-        region = "F"
-    elif region_type == "outer circle" and quadrant == "bottom-left":
-        region = "G"
-    elif region_type == "outer circle" and quadrant == "bottom-right":
-        region = "H"
-    elif region_type == "inner circle" and quadrant == "top-left":
-        region = "I"
-    elif region_type == "inner circle" and quadrant == "top-right":
-        region = "J"
-    elif region_type == "inner circle" and quadrant == "bottom-left":
-        region = "K"
-    elif region_type == "inner circle" and quadrant == "bottom-right":
-        region = "L"
-    else:
-        region = "not detected"
-    return region,(x - cx, y - cy)
-
+        if x < 0.5 and y < 0.5:
+            return "bottom-left (X)"
+        elif x > 0.5 and y < 0.5:
+            return "bottom-right (✓)"
+        elif x < 0.5 and y > 0.5:
+            return "top-left (NUM)"
+        elif x > 0.5 and y > 0.5:
+            return "top-right (⟳)"
+        else:
+            return "outside"
 def estimate_eye_closed(eye_frame):
     """Estimate if the eye is closed based on the darkness ratio."""
     gray = cv2.cvtColor(eye_frame, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
-    _, thresh = cv2.threshold(blur, 50, 255, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
 
     black_pixels = np.sum(thresh == 0)
     total_pixels = thresh.size
     darkness_ratio = black_pixels / total_pixels
+    cv2.imshow('filter', thresh)
 
-    return darkness_ratio > 0.6  # Adjust this threshold as needed
+    return darkness_ratio > 0.7  # Adjust this threshold as needed
 
 def track_pupil(eye_frame, initial_threshold=30):
     gray = cv2.cvtColor(eye_frame, cv2.COLOR_BGR2GRAY)
@@ -94,11 +74,20 @@ def track_pupil(eye_frame, initial_threshold=30):
 
     best_pupil = None
     best_thresh = initial_threshold
-    threshold = initial_threshold
-    step = 5  # how much to increment/decrement threshold
+    step = 5
     max_attempts = 10
 
+    # Build a threshold list that includes both increasing and decreasing values
+    thresholds = []
     for i in range(max_attempts):
+        up = initial_threshold + step * i
+        down = initial_threshold - step * i
+        if up <= 255:
+            thresholds.append(up)
+        if down >= 0 and down != up:  # Avoid duplicate threshold
+            thresholds.append(down)
+
+    for threshold in thresholds:
         _, thresh_img = cv2.threshold(blurred, threshold, 255, cv2.THRESH_BINARY_INV)
         contours, _ = cv2.findContours(thresh_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -106,8 +95,7 @@ def track_pupil(eye_frame, initial_threshold=30):
             max_contour = max(contours, key=cv2.contourArea)
             area = cv2.contourArea(max_contour)
 
-            # Validate area
-            if frame_area * 0.01 < area < frame_area * 0.5: #If detected pupil is too large or too small
+            if frame_area * 0.01 < area < frame_area * 0.5:
                 M = cv2.moments(max_contour)
                 if M["m00"] != 0:
                     cx = int(M["m10"] / M["m00"])
@@ -115,24 +103,14 @@ def track_pupil(eye_frame, initial_threshold=30):
                     best_pupil = (cx, cy)
                     best_thresh = threshold
                     break
-                else:
-                    threshold += step  # try a different threshold
-            else:
-                threshold += step  # area too small/large
-        else:
-            threshold += step  # no contour found
-
-        if threshold > 255:
-            threshold = 255
-            break
 
     if best_pupil:
         cv2.circle(eye_frame, best_pupil, 3, (255, 0, 0), -1)
-        # Optional: display threshold used
-        cv2.putText(eye_frame, f"Thresh: {best_thresh}", (5, 55), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.45, (0, 255, 0), 1)
+
+    cv2.imshow('gray', thresh_img)
 
     return best_pupil
+
 
 
 def median_smooth_position(eye_buffer):
@@ -171,14 +149,12 @@ while True:
 
         eye_frame = frame[crop_y1:crop_y2, crop_x1:crop_x2].copy()
 
-        if estimate_eye_closed(eye_frame):
-            cv2.putText(frame, "Eye is closed", (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
-                        1, (0, 0, 255), 2)
-            # print("Eye is closed")
-            cv2.imshow("Frame", frame)
-            #if cv2.waitKey(1) & 0xFF == 27:
-                #break
-            #continue
+        pupil_center = track_pupil(eye_frame)
+
+        # Use pupil presence to override closed-eye assumption
+        if pupil_center is None and estimate_eye_closed(eye_frame):
+            print("Eye is likely closed")
+            continue
 
         # Pupil tracking
         pupil_center = track_pupil(eye_frame)
@@ -192,16 +168,16 @@ while True:
             cv2.circle(eye_frame, (pcx, pcy), 4, (255, 0, 0), -1)
             # Normalize pupil position to [0, 1] based on cropped area size
             rel_x = pcx / (crop_x2 - crop_x1)
-            rel_y = pcy / (crop_y2 - crop_y1)
-            region, offset = classify_point(rel_x, rel_y)
+            rel_y = 1.5 * pcy / (crop_y2 - crop_y1)  - 0.25
+            # print(rel_x, rel_y)
+
+            region= classify_point(rel_x, rel_y)
+            time.sleep(0.5)
 
             # ✅ 输出到终端
-            print(f"Region: {region}, relative coordinate: {rel_x, rel_y}")
-    time.sleep(0.5)
-            # ✅ 或显示到图像上
-            # cv2.putText(eye_frame, f"Region: {region}", (5, 55), cv2.FONT_HERSHEY_SIMPLEX, 0.45,
-            #     (0, 255, 0), 1)
-            # # Draw normalized position as text
+            print(f"Region: {region}")
+
+            # Draw normalized position as text
             # cv2.putText(eye_frame, f"Norm: ({rel_x:.2f}, {rel_y:.2f})", (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45,
             #             (255, 255, 255), 1)
             # cv2.putText(eye_frame, f"Offset: ({offset_x}, {offset_y})", (5, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.45,
@@ -211,12 +187,10 @@ while True:
         # Show cropped eye frame
         # cv2.imshow('Tracked Eye Only', eye_frame)
 
-    #if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
-        #break
+
+
+    if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
+        break
 
 cap.release()
 cv2.destroyAllWindows()
-
-
-
-
