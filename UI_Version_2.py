@@ -708,11 +708,16 @@ class AAC_GUI():
             self.state = "MAIN"  # Reset state to main panel
             self.update_display("MAIN")
         elif button == "CONFIRM":
-            self.confirm_text()
+            if self.current_text != "":
+                self.confirm_text()
+            else:
+                self.tts("Yes")
         elif button == "DELETE":
             if self.current_text:
                 self.current_text = self.current_text[:-1]  # Delete last char
                 self.update_display(self.state)
+            else:
+                self.tts("No")  # When empty, output "No"
 
     def command_listener(self):
         """Listen for commands from the terminal"""
