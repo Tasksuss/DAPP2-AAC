@@ -1,16 +1,4 @@
 import streamlit as st
-import base64
-
-def render_image(filepath: str):
-   """
-   filepath: path to the image. Must have a valid file extension.
-   """
-   mime_type = filepath.split('.')[-1:][0].lower()
-   with open(filepath, "rb") as f:
-   content_bytes = f.read()
-   content_b64encoded = base64.b64encode(content_bytes).decode()
-   image_string = f'data:image/{mime_type};base64,{content_b64encoded}'
-   st.image(image_string)
 
 def get_youtube_embed(video_url, width="100%", height="400"):
     """Generate HTML for YouTube video embedding"""
@@ -166,19 +154,7 @@ def main():
 
     st.markdown("## 🔧 Device Design")
     
-    # Create centered layout for the CAD image
-    col1, col2, col3 = st.columns([1, 2, 1])
-    
-    with col2:
-        st.markdown("""
-        <div style="background: #f8fafc; padding: 2rem; border-radius: 15px; 
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.1); text-align: center; margin-bottom: 2rem;">
-            <h3 style="color: #1e293b; margin-bottom: 1.5rem;">Wearable AAC Device - CAD Model</h3>
-        """, unsafe_allow_html=True)
-        
-        render_image("device_cad_model.jpg")
-        
-        st.markdown("""
+    st.markdown("""
             <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.6; font-size: 1.1rem;">
             Our lightweight, ergonomic wearable device integrates advanced eye-tracking technology 
             with comfortable head-mounting design for extended daily use.
