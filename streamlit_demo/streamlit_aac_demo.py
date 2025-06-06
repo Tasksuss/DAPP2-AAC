@@ -152,6 +152,44 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
+    # Device CAD Visualization Section - INSERT THIS BEFORE "# Video Demonstrations Section"
+    st.markdown("## 🔧 Device Design")
+    
+    # Create centered layout for the CAD image
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        st.markdown("""
+        <div style="background: #f8fafc; padding: 2rem; border-radius: 15px; 
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.1); text-align: center; margin-bottom: 2rem;">
+            <h3 style="color: #1e293b; margin-bottom: 1.5rem;">Wearable AAC Device - CAD Model</h3>
+        """, unsafe_allow_html=True)
+        
+        try:
+            st.image("device_cad_model.jpg", 
+                    caption="Complete wearable AAC system with integrated eye-tracking camera and processing unit",
+                    use_column_width=True)
+        except:
+            st.markdown("""
+            <div style="width: 100%; height: 300px; background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+                        border: 2px dashed #94a3b8; border-radius: 10px; display: flex; align-items: center; 
+                        justify-content: center; flex-direction: column; color: #64748b;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📐</div>
+                <h4>CAD Model Image</h4>
+                <p>Add device_cad_model.jpg to display</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown("""
+            <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.6; font-size: 1.1rem;">
+            Our lightweight, ergonomic wearable device integrates advanced eye-tracking technology 
+            with comfortable head-mounting design for extended daily use.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")  # Add a separator line
+
     # Video Demonstrations Section
     st.markdown("## 🎥 Live Demonstrations")
     
