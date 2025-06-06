@@ -1,6 +1,5 @@
 import streamlit as st
-from PIL import Image
-
+import base64
 
 def get_youtube_embed(video_url, width="100%", height="400"):
     """Generate HTML for YouTube video embedding"""
@@ -154,17 +153,69 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
+    def get_base64_image(image_path):
+    """Convert image to base64 string"""
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except FileNotFoundError:
+        print(f"File not found: {image_path}")
+        return None
+    except Exception as e:
+        print(f"Error loading image: {e}")
+        return None
+
+    # Device CAD Visualization Section
     st.markdown("## 🔧 Device Design")
     
-    st.markdown("""
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        st.markdown("""
+        <div style="background: #f8fafc; padding: 2rem; border-radius: 15px; 
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.1); text-align: center; margin-bottom: 2rem;">
+            <h3 style="color: #1e293b; margin-bottom: 1.5rem;">Wearable AAC Device - CAD Model</h3>
+        """, unsafe_allow_html=True)
+        
+        # Try different path options - use whichever works for your setup
+        image_paths = [
+            "device_cad_model.jpg",           # Same folder as your .py file
+            "./device_cad_model.jpg",         # Explicit current directory
+            "../device_cad_model.jpg",        # Parent directory (repo root)
+            "streamlit_demo/device_cad_model.jpg"  # If running from repo root
+        ]
+        
+        img_base64 = None
+        used_path = None
+        
+        for path in image_paths:
+            img_base64 = get_base64_image(path)
+            if img_base64:
+                used_path = path
+                break
+        
+        if img_base64:
+            st.markdown(f"""
+            <img src="data:image/jpeg;base64,{img_base64}" 
+                 style="width: 100%; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <p style="color: #64748b; font-style: italic; margin-top: 0.5rem; font-size: 0.9rem;">
+            Complete wearable AAC system with integrated eye-tracking camera and processing unit
+            </p>
+            <p style="color: #94a3b8; font-size: 0.8rem;">Loaded from: {used_path}</p>
+            """, unsafe_allow_html=True)
+        else:
+            st.error("❌ Could not load image file. Please add 'device_cad_model.jpg' to the streamlit_demo folder.")
+            st.info("💡 Expected location: `/streamlit_demo/device_cad_model.jpg`")
+        
+        st.markdown("""
             <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.6; font-size: 1.1rem;">
             Our lightweight, ergonomic wearable device integrates advanced eye-tracking technology 
             with comfortable head-mounting design for extended daily use.
             </p>
         </div>
         """, unsafe_allow_html=True)
-    
-    st.markdown("---")  # Add a separator line
+
+        st.markdown("---")
 
     # Video Demonstrations Section
     st.markdown("## 🎥 Live Demonstrations")
