@@ -1,7 +1,7 @@
 import streamlit as st
 from PIL import Image
 
-image = Image.open('/streamlit_demo/device_cad_model.jpg')
+image = Image.open('device_cad_model.jpg')
 
 def get_youtube_embed(video_url, width="100%", height="400"):
     """Generate HTML for YouTube video embedding"""
