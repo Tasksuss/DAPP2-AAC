@@ -1,33 +1,31 @@
 import streamlit as st
-import base64
-import os
 
-def get_video_html(video_path, width="100%", height="400px"):
-    """Generate HTML for video embedding"""
-    if os.path.exists(video_path):
-        with open(video_path, "rb") as video_file:
-            video_bytes = video_file.read()
-            video_base64 = base64.b64encode(video_bytes).decode()
-        
-        video_html = f"""
-        <video width="{width}" height="{height}" controls style="border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-            <source src="data:video/mp4;base64,{video_base64}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-        """
-        return video_html
+def get_youtube_embed(video_url, width="100%", height="400"):
+    """Generate HTML for YouTube video embedding"""
+    # Extract video ID from YouTube URL
+    if "youtu.be/" in video_url:
+        video_id = video_url.split("youtu.be/")[1].split("?")[0]
+    elif "youtube.com/watch?v=" in video_url:
+        video_id = video_url.split("watch?v=")[1].split("&")[0]
     else:
-        return f"""
-        <div style="width: {width}; height: {height}; background: #f0f2f6; border: 2px dashed #ccc; 
-                    border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-            <p style="color: #666; text-align: center;">Video file not found:<br><strong>{video_path}</strong></p>
-        </div>
-        """
+        return f"<p>Invalid YouTube URL: {video_url}</p>"
+    
+    embed_html = f"""
+    <iframe width="{width}" height="{height}" 
+            src="https://www.youtube.com/embed/{video_id}" 
+            title="YouTube video player" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen
+            style="border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+    </iframe>
+    """
+    return embed_html
 
 def main():
     # Page configuration
     st.set_page_config(
-        page_title="AAC Keyboard - Eye-Tracking Interface",
+        page_title="Wearable AAC System - Eye-Tracking Interface",
         page_icon="👁️",
         layout="wide",
         initial_sidebar_state="collapsed"
@@ -131,11 +129,16 @@ def main():
         margin-top: 2rem;
     }
     
-    .metric-card {
-        background: white;
-        padding: 1rem;
+    .placeholder-video {
+        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+        border: 2px dashed #94a3b8;
         border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: #64748b;
         text-align: center;
     }
     </style>
@@ -144,7 +147,7 @@ def main():
     # Header
     st.markdown("""
     <div class="main-header">
-        <h1>👁️ AAC Keyboard</h1>
+        <h1>Wearable AAC System</h1>
         <p>Advanced Eye-Tracking Interface for Augmentative and Alternative Communication</p>
     </div>
     """, unsafe_allow_html=True)
@@ -152,35 +155,73 @@ def main():
     # Video Demonstrations Section
     st.markdown("## 🎥 Live Demonstrations")
     
-    col1, col2 = st.columns(2)
+    # Three-column layout for videos
+    col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.markdown("### 👁️ Eye-Tracking Technology")
-        try:
-            st.video("Eye-tracking Demo.mp4")
-        except:
-            st.error("Video file not found: Eye-tracking Demo.mp4")
+        st.markdown("""
+        <div class="video-container">
+            <h3 style="color: #1e293b; text-align: center; margin-bottom: 1rem;">👁️ Eye-Tracking Technology</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Eye-tracking video
+        youtube_embed = get_youtube_embed("https://youtu.be/yYKB8XmAFoY", width="100%", height="300")
+        st.markdown(youtube_embed, unsafe_allow_html=True)
         
         st.markdown("""
-        Real-time demonstration of our advanced eye-tracking system...
-        """)
+        <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.5;">
+        Real-time demonstration of our advanced eye-tracking system detecting gaze patterns 
+        and translating them into precise interface selections for seamless AAC communication.
+        </p>
+        """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("### 💻 Interface Demonstration")
-        try:
-            st.video("UI_Demo_Video.mp4")
-        except:
-            st.error("Video file not found: UI_Demo_Video.mp4")
+        st.markdown("""
+        <div class="video-container">
+            <h3 style="color: #1e293b; text-align: center; margin-bottom: 1rem;">💻 Interface Demonstration</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # UI demo video
+        youtube_embed = get_youtube_embed("https://youtu.be/7FzhZJq1Ph8", width="100%", height="300")
+        st.markdown(youtube_embed, unsafe_allow_html=True)
         
         st.markdown("""
-        Complete walkthrough of the circular AAC interface...
-        """)
+        <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.5;">
+        Complete walkthrough of the circular AAC interface showing letter selection, 
+        word formation, and text-to-speech functionality in action.
+        </p>
+        """, unsafe_allow_html=True)
     
+    with col3:
+        st.markdown("""
+        <div class="video-container">
+            <h3 style="color: #1e293b; text-align: center; margin-bottom: 1rem;">🏃 IMU Motion Control</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # IMU demo placeholder
+        st.markdown("""
+        <div class="placeholder-video">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🎬</div>
+            <h4 style="margin-bottom: 0.5rem;">Video Coming Soon</h4>
+            <p>IMU Motion Control Demo</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.5;">
+        Demonstration of wearable IMU sensors enabling head movement and gesture-based 
+        navigation as an alternative input method for the AAC interface.
+        </p>
+        """, unsafe_allow_html=True)
+
     # System Overview
     st.markdown("## 🔬 System Overview")
     st.markdown("""
     <p style="text-align: center; font-size: 1.2rem; color: #64748b; margin-bottom: 2rem;">
-    Our AAC keyboard system combines cutting-edge eye-tracking technology with an intuitive 
+    Our wearable AAC system combines cutting-edge eye-tracking technology with an intuitive 
     circular interface to provide fast, accurate communication for individuals with speech disabilities.
     </p>
     """, unsafe_allow_html=True)
@@ -204,7 +245,7 @@ def main():
         st.markdown("""
         <div class="feature-card">
             <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
-            <h3 style="color: #1e293b; margin-bottom: 1rem;">Circular Interface</h3>
+            <h3 style="color: #1e293b; margin-bottom: 1rem;">Circular Interface Design</h3>
             <p style="color: #64748b; line-height: 1.6;">
             Ergonomically designed circular layout optimizes eye movement patterns 
             and reduces fatigue during extended communication sessions.
@@ -216,7 +257,7 @@ def main():
         st.markdown("""
         <div class="feature-card">
             <div style="font-size: 3rem; margin-bottom: 1rem;">🔊</div>
-            <h3 style="color: #1e293b; margin-bottom: 1rem;">Real-Time TTS</h3>
+            <h3 style="color: #1e293b; margin-bottom: 1rem;">Real-Time Text-to-Speech</h3>
             <p style="color: #64748b; line-height: 1.6;">
             Instant voice synthesis converts typed text to natural-sounding speech, 
             enabling fluid conversation flow.
@@ -349,7 +390,7 @@ def main():
         </div>
         <div class="benefit-card">
             <h4 style="margin-bottom: 1rem;">💻 Portable</h4>
-            <p>Lightweight design for everyday use</p>
+            <p>Lightweight wearable design for everyday use</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -390,7 +431,7 @@ def main():
     st.markdown("""
     <div class="footer">
         <p style="font-size: 1.1rem; font-weight: 500; margin: 0;">
-        BME DAPP 2 Group 3, AAC Keyboard - Imperial College London 2025
+        BME DAPP 2 Group 3, Wearable AAC - Imperial College London 2025
         </p>
     </div>
     """, unsafe_allow_html=True)
