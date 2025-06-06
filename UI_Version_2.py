@@ -30,26 +30,26 @@ class AAC_GUI():
 
     # Configuration for selection mechanism
     SELECTION_THRESHOLD = 4  # Number of identical commands needed to confirm selection
-    MAX_DISPLAY_CHARS = 8  # Maximum characters to display in center circle
+    MAX_DISPLAY_CHARS = 7  # Maximum characters to display in center circle
 
     # Base color #3388ff with different opacity levels
     COLORS: Dict[str, str] = {
-        "background": "black",
-        "border": "white",
-        "text": "white",
-        "ring": "black",
-        "confirm": "white",
-        "cancel": "white",
-        "side": "black"
+        "background": "#f8fafc",  # Very light blue-gray
+        "border": "#3b82f6",  # Modern blue
+        "text": "#1e293b",  # Dark blue-gray
+        "ring": "#e2e8f0",  # Light gray
+        "confirm": "#10b981",  # Green for confirm
+        "cancel": "#ef4444",  # Red for cancel
+        "side": "#f1f5f9"  # Very light blue
     }
 
     # Fallback colors for systems that don't support alpha channels in hex
     FALLBACK_COLORS: Dict[str, str] = {
-        "highlight_0": "black",
-        "highlight_1": "#cceeff",  # Very light blue
-        "highlight_2": "#99ccff",  # Light blue
-        "highlight_3": "#66aaff",  # Medium blue
-        "highlight_4": "#3388ff",  # Full blue
+        "highlight_0": "#e2e8f0",     # Light gray
+        "highlight_1": "#dbeafe",     # Very light blue
+        "highlight_2": "#bfdbfe",     # Light blue
+        "highlight_3": "#93c5fd",     # Medium blue
+        "highlight_4": "#3b82f6",     # Full blue
     }
 
     FONT: Dict[str, int] = {
