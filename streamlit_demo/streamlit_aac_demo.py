@@ -470,7 +470,7 @@ def main():
     with col2:
         st.metric(
             label="Communication Speed",
-            value="10-15 Char per min",
+            value="10-15 CPM",
             delta="Faster than traditional"
         )
     
