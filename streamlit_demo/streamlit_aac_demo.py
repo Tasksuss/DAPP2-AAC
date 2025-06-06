@@ -153,6 +153,7 @@ def main():
     """, unsafe_allow_html=True)
 
     st.markdown("## 🔧 Device Design")
+    st.image("device_cad_model.jpg")
     
     st.markdown("""
             <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.6; font-size: 1.1rem;">
