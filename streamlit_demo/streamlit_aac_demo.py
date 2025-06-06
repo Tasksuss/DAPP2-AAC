@@ -155,41 +155,27 @@ def main():
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("""
-        <div class="video-container">
-            <h3 style="color: #1e293b; text-align: center; margin-bottom: 1rem;">👁️ Eye-Tracking Technology</h3>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Eye-tracking video
-        video_html = get_video_html("Eye-tracking Demo.mp4")
-        st.markdown(video_html, unsafe_allow_html=True)
+        st.markdown("### 👁️ Eye-Tracking Technology")
+        try:
+            st.video("Eye-tracking Demo.mp4")
+        except:
+            st.error("Video file not found: Eye-tracking Demo.mp4")
         
         st.markdown("""
-        <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.5;">
-        Real-time demonstration of our advanced eye-tracking system detecting gaze patterns 
-        and translating them into precise interface selections for seamless AAC communication.
-        </p>
-        """, unsafe_allow_html=True)
+        Real-time demonstration of our advanced eye-tracking system...
+        """)
     
     with col2:
-        st.markdown("""
-        <div class="video-container">
-            <h3 style="color: #1e293b; text-align: center; margin-bottom: 1rem;">💻 Interface Demonstration</h3>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # UI demo video
-        video_html = get_video_html("UI_Demo_Video.mp4")
-        st.markdown(video_html, unsafe_allow_html=True)
+        st.markdown("### 💻 Interface Demonstration")
+        try:
+            st.video("UI_Demo_Video.mp4")
+        except:
+            st.error("Video file not found: UI_Demo_Video.mp4")
         
         st.markdown("""
-        <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.5;">
-        Complete walkthrough of the circular AAC interface showing letter selection, 
-        word formation, and text-to-speech functionality in action.
-        </p>
-        """, unsafe_allow_html=True)
-
+        Complete walkthrough of the circular AAC interface...
+        """)
+    
     # System Overview
     st.markdown("## 🔬 System Overview")
     st.markdown("""
