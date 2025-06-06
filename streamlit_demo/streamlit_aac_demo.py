@@ -342,40 +342,36 @@ def main():
         </div>
         """, unsafe_allow_html=True)
 
-    # Technical Specifications
-    st.markdown("## ⚙️ Technical Specifications")
+        # Technical Details
+    st.markdown('<h2 class="section-header">⚙️ Technical Implementation</h2>', unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown("""
-        <div class="tech-spec">
-            <h4 style="color: #a78bfa; margin-bottom: 0.5rem;">Eye-Tracking Precision:</h4>
-            <p>Sub-degree accuracy with 60Hz sampling rate</p>
-            <h4 style="color: #a78bfa; margin-bottom: 0.5rem;">Selection Method:</h4>
-            <p>Dwell-time based (2-second threshold)</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("""
-        <div class="tech-spec">
-            <h4 style="color: #a78bfa; margin-bottom: 0.5rem;">Interface Framework:</h4>
-            <p>Python Tkinter with real-time rendering</p>
-            <h4 style="color: #a78bfa; margin-bottom: 0.5rem;">Audio Output:</h4>
-            <p>Google Text-to-Speech (gTTS) integration</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown("""
-        <div class="tech-spec">
-            <h4 style="color: #a78bfa; margin-bottom: 0.5rem;">Letter Organization:</h4>
-            <p>Frequency-optimized circular sectors</p>
-            <h4 style="color: #a78bfa; margin-bottom: 0.5rem;">Response Time:</h4>
-            <p>&lt;250ms latency for seamless interaction</p>
-        </div>
-        """, unsafe_allow_html=True)
+    with st.expander("Eye-Tracking and Software Details", expanded=False):
+        tech_text = """
+        **Eye-Tracking System:**
+        - Receives video input from Raspberry Pi camera module 2
+        - Locates pupil using color and contrast analysis
+        - Preprocesses images through grayscaling, thresholding, and blurring
+        - Tracks pupil movement using contour analysis and optical flow
+        - Estimates gaze direction and determines keyboard focus
+        
+        **GUI Interface:**
+        - Demo version: Python with Tkinter
+        - Final version: Kotlin on Android Studio for Google Glass
+        - Hierarchical command system based on gaze coordinates
+        - Visual feedback through frame shifts and light intensity
+        - Text-to-speech using Google TTS module
+        
+        **Emergency System:**
+        - MPU 6050 IMU integrated with Raspberry Pi Zero 2W
+        - Continuous head orientation monitoring via gyroscope
+        - Predefined help messages triggered by head gestures
+        
+        **Hardware Integration:**
+        - Raspberry Pi Zero 2W as core processing unit
+        - 3D printed ABS frame for durability
+        - Designed to support Google Glass lenses
+        """
+        st.markdown(tech_text)
 
     # How It Works
     st.markdown("## 🔄 How It Works")
@@ -488,7 +484,7 @@ def main():
     with col4:
         st.metric(
             label="Eye-Track Frequency",
-            value="60 Hz",
+            value="30 Hz",
             delta="Smooth tracking"
         )
 
