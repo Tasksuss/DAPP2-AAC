@@ -154,16 +154,16 @@ def main():
     """, unsafe_allow_html=True)
 
     def get_base64_image(image_path):
-    """Convert image to base64 string"""
-    try:
-        with open(image_path, "rb") as img_file:
-            return base64.b64encode(img_file.read()).decode()
-    except FileNotFoundError:
-        print(f"File not found: {image_path}")
-        return None
-    except Exception as e:
-        print(f"Error loading image: {e}")
-        return None
+        """Convert image to base64 string"""
+        try:
+            with open(image_path, "rb") as img_file:
+                return base64.b64encode(img_file.read()).decode()
+        except FileNotFoundError:
+            print(f"File not found: {image_path}")
+            return None
+        except Exception as e:
+            print(f"Error loading image: {e}")
+            return None
 
     # Device CAD Visualization Section
     st.markdown("## 🔧 Device Design")
@@ -207,15 +207,15 @@ def main():
             st.error("❌ Could not load image file. Please add 'device_cad_model.jpg' to the streamlit_demo folder.")
             st.info("💡 Expected location: `/streamlit_demo/device_cad_model.jpg`")
         
-        st.markdown("""
-            <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.6; font-size: 1.1rem;">
-            Our lightweight, ergonomic wearable device integrates advanced eye-tracking technology 
-            with comfortable head-mounting design for extended daily use.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown("""
+        <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.6; font-size: 1.1rem;">
+        Our lightweight, ergonomic wearable device integrates advanced eye-tracking technology 
+        with comfortable head-mounting design for extended daily use.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
-        st.markdown("---")
+    st.markdown("---")
 
     # Video Demonstrations Section
     st.markdown("## 🎥 Live Demonstrations")
