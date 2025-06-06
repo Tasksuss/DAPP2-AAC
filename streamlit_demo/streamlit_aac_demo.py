@@ -400,37 +400,6 @@ def main():
             delta="Smooth tracking"
         )
 
-    # Project Resources
-    st.markdown("## 📱 Project Resources")
-    
-    col1, col2 = st.columns([1, 2])
-    
-    with col1:
-        st.markdown("""
-        <div style="text-align: center; padding: 2rem; background: #f1f5f9; border-radius: 15px;">
-            <div style="width: 150px; height: 150px; background: #e2e8f0; border: 2px solid #94a3b8; 
-                        border-radius: 10px; display: flex; align-items: center; justify-content: center; 
-                        margin: 0 auto 1rem;">
-                <span style="color: #64748b; font-size: 0.9rem;">QR Code<br>Coming Soon</span>
-            </div>
-            <p style="color: #64748b; font-weight: 500;">GitHub Repository</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("""
-        #### 📖 Complete Project Resources:
-        
-        - **Full source code and documentation**
-        - **Hardware setup instructions** 
-        - **Calibration and usage guides**
-        - **Technical specifications**
-        - **Research findings and validation**
-        - **Video demonstrations and tutorials**
-        
-        Access all project files, documentation, and research data through our GitHub repository.
-        """)
-
     # Footer
     st.markdown("""
     <div class="footer">
