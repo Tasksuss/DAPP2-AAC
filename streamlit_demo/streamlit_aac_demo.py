@@ -167,8 +167,8 @@ def main():
         
         try:
             st.image("device_cad_model.jpg", 
-                    caption="Complete wearable AAC system with integrated eye-tracking camera and processing unit",
-                    use_column_width=True)
+                caption="Complete wearable AAC system with integrated eye-tracking camera and processing unit",
+                use_container_width=True)
         except:
             st.markdown("""
             <div style="width: 100%; height: 300px; background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
