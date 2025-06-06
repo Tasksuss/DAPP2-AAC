@@ -1,4 +1,16 @@
 import streamlit as st
+import base64
+
+def render_image(filepath: str):
+   """
+   filepath: path to the image. Must have a valid file extension.
+   """
+   mime_type = filepath.split('.')[-1:][0].lower()
+   with open(filepath, "rb") as f:
+   content_bytes = f.read()
+   content_b64encoded = base64.b64encode(content_bytes).decode()
+   image_string = f'data:image/{mime_type};base64,{content_b64encoded}'
+   st.image(image_string)
 
 def get_youtube_embed(video_url, width="100%", height="400"):
     """Generate HTML for YouTube video embedding"""
@@ -152,7 +164,6 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
-    # Device CAD Visualization Section - INSERT THIS BEFORE "# Video Demonstrations Section"
     st.markdown("## 🔧 Device Design")
     
     # Create centered layout for the CAD image
@@ -165,20 +176,7 @@ def main():
             <h3 style="color: #1e293b; margin-bottom: 1.5rem;">Wearable AAC Device - CAD Model</h3>
         """, unsafe_allow_html=True)
         
-        try:
-            st.image("device_cad_model.jpg", 
-                caption="Complete wearable AAC system with integrated eye-tracking camera and processing unit",
-                use_container_width=True)
-        except:
-            st.markdown("""
-            <div style="width: 100%; height: 300px; background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
-                        border: 2px dashed #94a3b8; border-radius: 10px; display: flex; align-items: center; 
-                        justify-content: center; flex-direction: column; color: #64748b;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">📐</div>
-                <h4>CAD Model Image</h4>
-                <p>Add device_cad_model.jpg to display</p>
-            </div>
-            """, unsafe_allow_html=True)
+        render_image("device_cad_model.jpg")
         
         st.markdown("""
             <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.6; font-size: 1.1rem;">
