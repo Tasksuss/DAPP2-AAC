@@ -1,6 +1,6 @@
-# calibration.py
 import json
 import os
+import time
 from eyetracking import main as gaze_stream
 import math
 
@@ -14,13 +14,13 @@ def classify_point(x, y):
     dy = y - cy
     dist = math.hypot(dx, dy)
 
-    inner_radius = 0.3*a    # inner circle
-    outer_radius = 0.45*a     # middle circle
+    inner_radius = 0.25 * a
+    outer_radius = 0.47 * a
 
     if dist <= inner_radius:
         return "inner circle"
     elif dist <= outer_radius:
-        angle = math.degrees(math.atan2(-dy, dx)) % 360
+        angle = math.degrees(math.atan2(dy, dx)) % 360
         if 45 <= angle < 135:
             return "top ring"
         elif 135 <= angle < 225:
@@ -51,7 +51,10 @@ class Calibration:
     def calibrate(self, gaze_generator):
         self.corners = {}
         for label in corner_labels:
-            input(f"\nLook at the {label.replace('_', ' ')} and press ENTER...")
+            print(f"\nLook at the {label.replace('_', ' ')}...")
+            for i in range(3, 0, -1):
+                print(f"Capturing in {i}...", end="\r")
+                time.sleep(1)
             rel_x, rel_y = next(gaze_generator)
             self.corners[label] = {"x": rel_x, "y": rel_y}
             print(f"Recorded {label}: ({rel_x:.3f}, {rel_y:.3f})")
@@ -79,16 +82,12 @@ class Calibration:
         dy = rel_y - cy
 
         if dx >= 0 and dy > 0:
-            # Top right quadrant
             ref_x, ref_y = rx - cx, ty - cy
         elif dx < 0 and dy > 0:
-            # Top left quadrant
             ref_x, ref_y = - (lx - cx), ty - cy
         elif dx < 0 and dy <= 0:
-            # Bottom left quadrant
             ref_x, ref_y = - (lx - cx), - (by - cy)
         else:
-            # Bottom right quadrant
             ref_x, ref_y = rx - cx, - (by - cy)
 
         norm_x = dx / ref_x if ref_x != 0 else 0.0
@@ -126,7 +125,6 @@ if __name__ == "__main__":
             cal_x, cal_y = calib.transform_coordinates(rel_x, rel_y)
             region = classify_point(cal_x, cal_y)
             print(region)
-            input("")
+            time.sleep(0.5)
     except KeyboardInterrupt:
         print("\n[INFO] Gaze processing stopped.")
-
