@@ -112,14 +112,14 @@ def main():
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # Update eye bbox every 5 seconds
-        # if current_time - last_update_time > 30:
-        eyes = eye_cascade.detectMultiScale(gray, 1.3, 5)
-        if len(eyes) > 0:
-            eye_bbox_fixed = max(eyes, key=lambda e: e[2] * e[3])
-            #     print(f"[INFO] Updated eye region: {eye_bbox_fixed}")
-            #     last_update_time = current_time
-            # else:
-            #     print("[WARNING] No eyes detected on update attempt.")
+        if current_time - last_update_time > 300:
+            eyes = eye_cascade.detectMultiScale(gray, 1.3, 5)
+            if len(eyes) > 0:
+                eye_bbox_fixed = max(eyes, key=lambda e: e[2] * e[3])
+                #     print(f"[INFO] Updated eye region: {eye_bbox_fixed}")
+                last_update_time = current_time
+                # else:
+                #     print("[WARNING] No eyes detected on update attempt.")
 
         if eye_bbox_fixed is not None:
             ex, ey, ew, eh = eye_bbox_fixed
@@ -149,12 +149,13 @@ def main():
                 center_y = eh // 2
                 rel_x = 1 - pcx / (crop_x2 - crop_x1)
                 rel_y = 1 - pcy / (crop_y2 - crop_y1)
+                # cv2.imshow('Tracked Eye Only', eye_frame)
                 yield rel_x, rel_y
 
 
                 # print(rel_x, rel_y)
                 # cv2.imshow('Tracked Eye Only', eye_frame)
-                time.sleep(1)
+                # time.sleep(0.5)
 
         if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
             break
