@@ -5,35 +5,30 @@ from eyetracking import main as gaze_stream
 import math
 
 CALIBRATION_FILE = "calibration_data.json"
-corner_labels = ["top_left", "top_right", "bottom_left", "bottom_right"]
+corner_labels = ["center", "top_mid", "left_mid", "bottom_mid", "right_mid"]
 
 def classify_point(x, y):
-    a = 0.75
+    a = 1
     cx, cy = 0.5, 0.5
     dx = x - cx
     dy = y - cy
     dist = math.hypot(dx, dy)
 
     inner_radius = 0.3*a    # inner circle
-    outer_radius = 0.4*a     # middle circle
+    outer_radius = 0.45*a     # middle circle
 
-    # comfirm whether in inner circle
     if dist <= inner_radius:
         return "inner circle"
-
-    # comfirm whether in outer circle
     elif dist <= outer_radius:
-        angle = math.degrees(math.atan2(-dy, dx)) % 360  # clockwise from right
+        angle = math.degrees(math.atan2(-dy, dx)) % 360
         if 45 <= angle < 135:
-            return "top ring"      # h l d r n t s
+            return "top ring"
         elif 135 <= angle < 225:
-            return "left ring"     # c w m g y p f
+            return "left ring"
         elif 225 <= angle < 315:
-            return "bottom ring"   # j b q k v z x
+            return "bottom ring"
         else:
-            return "right ring"    # u o i e a
-
-    # outer circle
+            return "right ring"
     else:
         if x < 0.5 and y < 0.5:
             return "bottom-left (X)"
@@ -55,47 +50,59 @@ class Calibration:
 
     def calibrate(self, gaze_generator):
         self.corners = {}
-
         for label in corner_labels:
             input(f"\nLook at the {label.replace('_', ' ')} and press ENTER...")
             rel_x, rel_y = next(gaze_generator)
             self.corners[label] = {"x": rel_x, "y": rel_y}
             print(f"Recorded {label}: ({rel_x:.3f}, {rel_y:.3f})")
-
         with open(CALIBRATION_FILE, 'w') as f:
             json.dump(self.corners, f)
             print("[INFO] Calibration data saved.")
 
     def transform_coordinates(self, rel_x, rel_y):
-        if len(self.corners) != 4:
+        if len(self.corners) != 5:
             raise ValueError("Calibration data is incomplete. Please calibrate.")
 
-        tl = self.corners["top_left"]
-        tr = self.corners["top_right"]
-        bl = self.corners["bottom_left"]
-        br = self.corners["bottom_right"]
+        center = self.corners["center"]
+        top_mid = self.corners["top_mid"]
+        left_mid = self.corners["left_mid"]
+        bottom_mid = self.corners["bottom_mid"]
+        right_mid = self.corners["right_mid"]
 
-        min_x = (tl["x"] + bl["x"]) / 2
-        max_x = (tr["x"] + br["x"]) / 2
-        min_y = (tl["y"] + tr["y"]) / 2
-        max_y = (bl["y"] + br["y"]) / 2
+        cx, cy = center["x"], center["y"]
+        tx, ty = top_mid["x"], top_mid["y"]
+        lx, ly = left_mid["x"], left_mid["y"]
+        bx, by = bottom_mid["x"], bottom_mid["y"]
+        rx, ry = right_mid["x"], right_mid["y"]
 
-        calibrated_x = (rel_x - min_x) / (max_x - min_x)
-        calibrated_y = 1 - (rel_y - min_y) / (max_y - min_y)
+        dx = rel_x - cx
+        dy = rel_y - cy
 
-        # Clamp values
-        calibrated_x = max(0.0, min(1.0, calibrated_x))
-        calibrated_y = max(0.0, min(1.0, calibrated_y))
+        if dx >= 0 and dy > 0:
+            # Top right quadrant
+            ref_x, ref_y = rx - cx, ty - cy
+        elif dx < 0 and dy > 0:
+            # Top left quadrant
+            ref_x, ref_y = - (lx - cx), ty - cy
+        elif dx < 0 and dy <= 0:
+            # Bottom left quadrant
+            ref_x, ref_y = - (lx - cx), - (by - cy)
+        else:
+            # Bottom right quadrant
+            ref_x, ref_y = rx - cx, - (by - cy)
+
+        norm_x = dx / ref_x if ref_x != 0 else 0.0
+        norm_y = dy / ref_y if ref_y != 0 else 0.0
+
+        calibrated_x = max(0.0, min(1.0, 0.5 + norm_x / 2))
+        calibrated_y = max(0.0, min(1.0, 0.5 + norm_y / 2))
 
         return calibrated_x, calibrated_y
 
-
-# === MAIN USE ===
 if __name__ == "__main__":
     stream = gaze_stream()
     calib_file = "calibration_data.json"
 
-    # Check if file exists and has data
     if os.path.exists(calib_file):
         with open(calib_file, 'r') as f:
             try:
@@ -106,24 +113,20 @@ if __name__ == "__main__":
                 print("[WARNING] Calibration file exists but is invalid. Recreating it.")
                 os.remove(calib_file)
 
-    # Create a new Calibration instance (which loads fresh or empty)
     calib = Calibration()
-
     calib.calibrate(stream)
 
-    # Save the new calibration data
     with open(calib_file, 'w') as f:
         json.dump(calib.corners, f)
         print("[INFO] New calibration data saved.")
 
-    # Start live tracking
     print("\n[INFO] Starting live gaze processing (press Ctrl+C to stop):")
     try:
         for rel_x, rel_y in stream:
             cal_x, cal_y = calib.transform_coordinates(rel_x, rel_y)
             region = classify_point(cal_x, cal_y)
             print(region)
+            input("")
     except KeyboardInterrupt:
         print("\n[INFO] Gaze processing stopped.")
-
 
