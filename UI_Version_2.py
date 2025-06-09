@@ -45,11 +45,11 @@ class AAC_GUI():
 
     # Fallback colors for systems that don't support alpha channels in hex
     FALLBACK_COLORS: Dict[str, str] = {
-        "highlight_0": "#e2e8f0",     # Light gray
-        "highlight_1": "#dbeafe",     # Very light blue
-        "highlight_2": "#bfdbfe",     # Light blue
-        "highlight_3": "#93c5fd",     # Medium blue
-        "highlight_4": "#3b82f6",     # Full blue
+        "highlight_0": "#e2e8f0",  # Light gray
+        "highlight_1": "#dbeafe",  # Very light blue
+        "highlight_2": "#bfdbfe",  # Light blue
+        "highlight_3": "#93c5fd",  # Medium blue
+        "highlight_4": "#3b82f6",  # Full blue
     }
 
     FONT: Dict[str, int] = {
@@ -160,6 +160,8 @@ class AAC_GUI():
         - MAIN mode: Clusters letters within 45-degree sectors radially.
         - Secondary mode: Letters distributed in equal segments around the full circle.
         - Special buttons (NUM, ⟲, ✔, X) use Cartesian coordinates.
+
+        MODIFIED: Increased outer ring by 1/3 and inner ring by 1/5
         """
         center_x, center_y = 250, 250  # Center of the screen
 
@@ -168,22 +170,22 @@ class AAC_GUI():
         sector_info = {
             "TOP": {
                 "center_angle": 90,  # degrees
-                "center_radius": 75,
+                "center_radius": 100,  # Increased from 75 by 1/3
                 "letters": self.TOP
             },
             "RIGHT": {
                 "center_angle": 0,  # degrees
-                "center_radius": 75,
+                "center_radius": 100,  # Increased from 75 by 1/3
                 "letters": self.RIGHT
             },
             "BOTTOM": {
                 "center_angle": 270,  # degrees
-                "center_radius": 75,
+                "center_radius": 100,  # Increased from 75 by 1/3
                 "letters": self.BOTTOM
             },
             "LEFT": {
                 "center_angle": 180,  # degrees
-                "center_radius": 75,
+                "center_radius": 100,  # Increased from 75 by 1/3
                 "letters": self.LEFT
             }
         }
@@ -231,7 +233,7 @@ class AAC_GUI():
                 self.character_positions[(char, "MAIN")] = (char_x, char_y)
 
         ### --- SECONDARY VIEW: Full circle with equal segments --- ###
-        ring_radius = 100
+        ring_radius = 120  # Increased from 100 by 1/5
         for section, chars in self.letters.items():
             num_chars = len(chars)
             for i, char in enumerate(chars):
@@ -273,10 +275,10 @@ class AAC_GUI():
 
         ### --- SPECIAL BUTTONS (NUM, ⟲, ✔, X) --- ###
         button_positions = {
-            "NUM": (100, 100),  # Top-left
-            "⟲": (400, 100),  # Top-right
-            "✔": (400, 400),  # Bottom-right
-            "X": (100, 400)  # Bottom-left
+            "NUM": (83, 83),  # Top-left
+            "⟲": (417, 83),  # Top-right
+            "✔": (417, 417),  # Bottom-right
+            "X": (83, 417)  # Bottom-left
         }
 
         for button, pos in button_positions.items():
@@ -302,28 +304,28 @@ class AAC_GUI():
 
         # Draw NUM button (5) - store ID for highlighting
         self.corner_button_ids["NUM_BG"] = self.canvas.create_rectangle(
-            num_x - 150, num_y - 150, num_x + 150, num_y + 150,
+            num_x - 167, num_y - 167, num_x + 167, num_y + 167,
             outline=self.COLORS["border"], fill=self.COLORS["side"], width=3, tags="side_button")
         self.canvas.create_text(num_x, num_y, text="NUM", fill=self.COLORS["text"],
                                 font=self.FONT["middle"], tags="side_button")
 
         # Draw Return button (6) - store ID for highlighting
         self.corner_button_ids["RETURN_BG"] = self.canvas.create_rectangle(
-            return_x - 150, return_y - 150, return_x + 150, return_y + 150,
+            return_x - 167, return_y - 167, return_x + 167, return_y + 167,
             outline=self.COLORS["border"], fill=self.COLORS["side"], width=3, tags="side_button")
         self.canvas.create_text(return_x, return_y, text="⟲", fill=self.COLORS["text"],
                                 font=self.FONT["middle"], tags="side_button")
 
         # Draw Confirm button (8) - store ID for highlighting
         self.corner_button_ids["CONFIRM_BG"] = self.canvas.create_rectangle(
-            confirm_x - 150, confirm_y - 150, confirm_x + 150, confirm_y + 150,
+            confirm_x - 167, confirm_y - 167, confirm_x + 167, confirm_y + 167,
             outline=self.COLORS["border"], fill=self.COLORS["side"], width=3, tags="side_button")
         self.canvas.create_text(confirm_x, confirm_y, text="✔", fill=self.COLORS["confirm"],
                                 font=self.FONT["middle"], tags="side_button")
 
         # Draw Cancel/Delete button (7) - store ID for highlighting
         self.corner_button_ids["DELETE_BG"] = self.canvas.create_rectangle(
-            cancel_x - 150, cancel_y - 150, cancel_x + 150, cancel_y + 150,
+            cancel_x - 167, cancel_y - 167, cancel_x + 167, cancel_y + 167,
             outline=self.COLORS["border"], fill=self.COLORS["side"], width=3, tags="side_button")
         self.canvas.create_text(cancel_x, cancel_y, text="X", fill=self.COLORS["cancel"],
                                 font=self.FONT["middle"], tags="side_button")
@@ -360,25 +362,32 @@ class AAC_GUI():
             self.canvas.itemconfig(self.center_circle_id, fill=color)
 
     def create_ring(self):
-        """Draws the four-sectioned ring with arcs."""
-        # Create the outer ring
-        self.canvas.create_oval(100, 100, 400, 400, outline=self.COLORS["border"],
+        """Draws the four-sectioned ring with arcs. Modified with larger outer ring."""
+        # Create the outer ring with increased size (by 1/3)
+        ring_size = 400  # Increased from 300
+        offset = (500 - ring_size) // 2  # Center the ring
+        self.canvas.create_oval(offset, offset, offset + ring_size, offset + ring_size,
+                                outline=self.COLORS["border"],
                                 fill=self.COLORS["background"], width=3, tags="outer_ring")
 
         # Create the four sections with their command numbers and store their IDs
-        self.section_ids["TOP"] = self.canvas.create_arc(100, 100, 400, 400, start=45, extent=90,
+        self.section_ids["TOP"] = self.canvas.create_arc(offset, offset, offset + ring_size, offset + ring_size,
+                                                         start=45, extent=90,
                                                          outline=self.COLORS["border"],
                                                          fill=self.COLORS["ring"], width=3, tags="TOP")
 
-        self.section_ids["RIGHT"] = self.canvas.create_arc(100, 100, 400, 400, start=315, extent=90,
+        self.section_ids["RIGHT"] = self.canvas.create_arc(offset, offset, offset + ring_size, offset + ring_size,
+                                                           start=315, extent=90,
                                                            outline=self.COLORS["border"],
                                                            fill=self.COLORS["ring"], width=3, tags="RIGHT")
 
-        self.section_ids["BOTTOM"] = self.canvas.create_arc(100, 100, 400, 400, start=225, extent=90,
+        self.section_ids["BOTTOM"] = self.canvas.create_arc(offset, offset, offset + ring_size, offset + ring_size,
+                                                            start=225, extent=90,
                                                             outline=self.COLORS["border"],
                                                             fill=self.COLORS["ring"], width=3, tags="BOTTOM")
 
-        self.section_ids["LEFT"] = self.canvas.create_arc(100, 100, 400, 400, start=135, extent=90,
+        self.section_ids["LEFT"] = self.canvas.create_arc(offset, offset, offset + ring_size, offset + ring_size,
+                                                          start=135, extent=90,
                                                           outline=self.COLORS["border"],
                                                           fill=self.COLORS["ring"], width=3, tags="LEFT")
 
@@ -390,8 +399,12 @@ class AAC_GUI():
                                         font=self.FONT["small"], tags="main_characters")
 
     def create_circle(self):
-        """Draws the central text display circle with a border."""
-        self.center_circle_id = self.canvas.create_oval(200, 200, 300, 300, outline=self.COLORS["border"],
+        """Draws the central text display circle with a border. Modified with larger inner circle."""
+        # Increase inner circle size by 1/5 (from 100 to 120)
+        circle_size = 120
+        offset = (500 - circle_size) // 2
+        self.center_circle_id = self.canvas.create_oval(offset, offset, offset + circle_size, offset + circle_size,
+                                                        outline=self.COLORS["border"],
                                                         fill=self.COLORS["background"], width=3, tags="center_circle")
         self.canvas.create_text(250, 250, text=self.get_display_text(), font=self.FONT["large"],
                                 fill=self.COLORS["text"], tags="center_text")
@@ -411,6 +424,21 @@ class AAC_GUI():
                 # Update the display to show the dimming
                 self.update_display(self.state)
 
+    def reset_peripheral_regions(self):
+        """Reset all peripheral region's progress and brightness to 0"""
+        # Reset all selection counters
+        for section in self.selection_counters:
+            self.selection_counters[section] = 0
+
+        for section in self.secondary_counters:
+            for i in range(len(self.secondary_counters[section])):
+                self.secondary_counters[section][i] = 0
+
+        for corner in self.corner_counters:
+            self.corner_counters[corner] = 0
+
+        self.center_counter = 0
+
     def update_display(self, option: str) -> None:
         """
         Updates the GUI based on the selected mode.
@@ -418,6 +446,8 @@ class AAC_GUI():
         - 'MAIN'  -> Shows four quadrants (default state).
         - 'RIGHT', 'TOP', 'LEFT', 'BOTTOM' -> Shows secondary panel with characters in a full circle.
         - 'NUM'   -> Displays numeric keypad in a full circle.
+
+        Modified: Updated ring sizes and added larger offset calculations
         """
         # Clear only the ring and character elements, keep side buttons
         self.canvas.delete("ring")
@@ -428,8 +458,11 @@ class AAC_GUI():
         self.canvas.delete("main_labels")
         self.canvas.delete("main_characters")
 
-        # Create outer ring FIRST
-        self.canvas.create_oval(100, 100, 400, 400, outline=self.COLORS["border"],
+        # Create outer ring FIRST with updated size
+        ring_size = 400  # Increased from 300
+        offset = (500 - ring_size) // 2
+        self.canvas.create_oval(offset, offset, offset + ring_size, offset + ring_size,
+                                outline=self.COLORS["border"],
                                 fill=self.COLORS["background"], width=3, tags="outer_ring")
 
         # Update display based on current state
@@ -440,7 +473,7 @@ class AAC_GUI():
             # Create TOP section
             counter_top = self.selection_counters["TOP"]
             self.section_ids["TOP"] = self.canvas.create_arc(
-                100, 100, 400, 400, start=45, extent=90,
+                offset, offset, offset + ring_size, offset + ring_size, start=45, extent=90,
                 outline=self.COLORS["border"],
                 fill=self.get_highlight_color(counter_top),
                 width=3, tags=("ring", "TOP")
@@ -449,7 +482,7 @@ class AAC_GUI():
             # Create RIGHT section
             counter_right = self.selection_counters["RIGHT"]
             self.section_ids["RIGHT"] = self.canvas.create_arc(
-                100, 100, 400, 400, start=315, extent=90,
+                offset, offset, offset + ring_size, offset + ring_size, start=315, extent=90,
                 outline=self.COLORS["border"],
                 fill=self.get_highlight_color(counter_right),
                 width=3, tags=("ring", "RIGHT")
@@ -458,7 +491,7 @@ class AAC_GUI():
             # Create BOTTOM section
             counter_bottom = self.selection_counters["BOTTOM"]
             self.section_ids["BOTTOM"] = self.canvas.create_arc(
-                100, 100, 400, 400, start=225, extent=90,
+                offset, offset, offset + ring_size, offset + ring_size, start=225, extent=90,
                 outline=self.COLORS["border"],
                 fill=self.get_highlight_color(counter_bottom),
                 width=3, tags=("ring", "BOTTOM")
@@ -467,7 +500,7 @@ class AAC_GUI():
             # Create LEFT section
             counter_left = self.selection_counters["LEFT"]
             self.section_ids["LEFT"] = self.canvas.create_arc(
-                100, 100, 400, 400, start=135, extent=90,
+                offset, offset, offset + ring_size, offset + ring_size, start=135, extent=90,
                 outline=self.COLORS["border"],
                 fill=self.get_highlight_color(counter_left),
                 width=3, tags=("ring", "LEFT")
@@ -478,7 +511,7 @@ class AAC_GUI():
                 for char in letters:
                     x, y = self.character_positions[(char, "MAIN")]
                     self.canvas.create_text(x, y, text=char, fill=self.COLORS["text"],
-                                            font= self.FONT["small"], tags="main_characters")
+                                            font=self.FONT["small"], tags="main_characters")
 
         elif option == "NUM":
             # Display numeric characters in circular layout with full 360-degree arcs
@@ -492,7 +525,7 @@ class AAC_GUI():
 
                 # Create arc for this number
                 self.secondary_section_ids[num] = self.canvas.create_arc(
-                    100, 100, 400, 400, start=start_angle, extent=extent,
+                    offset, offset, offset + ring_size, offset + ring_size, start=start_angle, extent=extent,
                     outline=self.COLORS["border"], fill=self.COLORS["ring"],
                     width=3, tags=("ring", "secondary", f"num_{i}")
                 )
@@ -500,7 +533,7 @@ class AAC_GUI():
                 # Add number text - positioned at middle of segment
                 x, y = self.character_positions[(num, "NUM")]
                 self.canvas.create_text(x, y, text=num, fill=self.COLORS["text"],
-                                        font= self.FONT["middle"], tags="characters")
+                                        font=self.FONT["middle"], tags="characters")
 
         elif option in ["RIGHT", "TOP", "LEFT", "BOTTOM"]:
             # Show selected section characters in a full circle
@@ -519,7 +552,7 @@ class AAC_GUI():
                 fill_color = self.get_highlight_color(counter)
 
                 self.secondary_section_ids[char] = self.canvas.create_arc(
-                    100, 100, 400, 400, start=start_angle, extent=extent,
+                    offset, offset, offset + ring_size, offset + ring_size, start=start_angle, extent=extent,
                     outline=self.COLORS["border"], fill=fill_color,
                     width=3, tags=("ring", "secondary", f"char_{i}")
                 )
@@ -527,7 +560,7 @@ class AAC_GUI():
                 # Add ONLY the character text - positioned at middle of segment
                 x, y = self.character_positions[(char, section)]
                 self.canvas.create_text(x, y, text=char, fill=self.COLORS["text"],
-                                        font= self.FONT["large"], tags="characters")
+                                        font=self.FONT["large"], tags="characters")
 
         # Update corner button highlighting
         self.update_corner_button_highlighting()
@@ -535,14 +568,19 @@ class AAC_GUI():
         # ALWAYS draw the center circle and text LAST to ensure it's on top
         self.canvas.delete("center_circle")
         self.canvas.delete("center_text")
-        self.center_circle_id = self.canvas.create_oval(200, 200, 300, 300, outline=self.COLORS["border"],
+        # Updated center circle size
+        circle_size = 120  # Increased from 100
+        circle_offset = (500 - circle_size) // 2
+        self.center_circle_id = self.canvas.create_oval(circle_offset, circle_offset,
+                                                        circle_offset + circle_size, circle_offset + circle_size,
+                                                        outline=self.COLORS["border"],
                                                         fill=self.COLORS["background"], width=3, tags="center_circle")
 
         # Update center circle highlighting
         self.update_center_circle_highlighting()
 
         # Display truncated text
-        self.canvas.create_text(250, 250, text=self.get_display_text(), font= self.FONT["large"],
+        self.canvas.create_text(250, 250, text=self.get_display_text(), font=self.FONT["large"],
                                 fill=self.COLORS["text"], tags="center_text")
 
         self.state = option  # Update the state of the interface
@@ -558,6 +596,8 @@ class AAC_GUI():
             # If counter reaches threshold, activate secondary panel
             if self.selection_counters[option] >= self.SELECTION_THRESHOLD:
                 self.selection_counters[option] = 0  # Reset counter
+                # MODIFICATION: Reset all peripheral regions when transitioning to secondary panel
+                self.reset_peripheral_regions()
                 self.state = option  # Activate secondary panel
                 self.update_display(option)
             else:
@@ -569,6 +609,11 @@ class AAC_GUI():
 
     def select_corner_button(self, button: str) -> None:
         """Handles selection of corner buttons with gradual lighting"""
+        # MODIFICATION: Disable keys 7 and 8 in secondary panels (except NUM which allows transition to numbers)
+        if self.state in ["TOP", "RIGHT", "BOTTOM", "LEFT"] and button in ["DELETE", "CONFIRM"]:
+            # Keys 7 and 8 are disabled in secondary panels, do nothing
+            return
+
         if button in self.corner_counters:
             # Increment the counter for this corner button
             self.corner_counters[button] += 1
@@ -599,17 +644,7 @@ class AAC_GUI():
         self.current_text += ' '
 
         # Reset all selection counters
-        for section in self.selection_counters:
-            self.selection_counters[section] = 0
-
-        for section in self.secondary_counters:
-            for i in range(len(self.secondary_counters[section])):
-                self.secondary_counters[section][i] = 0
-
-        for corner in self.corner_counters:
-            self.corner_counters[corner] = 0
-
-        self.center_counter = 0
+        self.reset_peripheral_regions()
 
         # Update display to show new text
         self.update_display(self.state)
@@ -647,17 +682,7 @@ class AAC_GUI():
         self.current_text += char
 
         # Reset all selection counters
-        for section in self.selection_counters:
-            self.selection_counters[section] = 0
-
-        for section in self.secondary_counters:
-            for i in range(len(self.secondary_counters[section])):
-                self.secondary_counters[section][i] = 0
-
-        for corner in self.corner_counters:
-            self.corner_counters[corner] = 0
-
-        self.center_counter = 0
+        self.reset_peripheral_regions()
 
         # Return to main state
         self.state = "MAIN"
@@ -670,17 +695,7 @@ class AAC_GUI():
             self.current_text = ""
 
             # Reset all counters and return to main state
-            for section in self.selection_counters:
-                self.selection_counters[section] = 0
-
-            for section in self.secondary_counters:
-                for i in range(len(self.secondary_counters[section])):
-                    self.secondary_counters[section][i] = 0
-
-            for corner in self.corner_counters:
-                self.corner_counters[corner] = 0
-
-            self.center_counter = 0
+            self.reset_peripheral_regions()
 
             self.state = "MAIN"
             self.update_display("MAIN")
@@ -690,20 +705,12 @@ class AAC_GUI():
         Handles side button clicks including Confirm, Cancel, Number Toggle, and Return.
         """
         if button == "NUM":
+            # MODIFICATION: Reset all peripheral regions when transitioning to NUM panel
+            self.reset_peripheral_regions()
             self.update_display("NUM")
         elif button == "RETURN":
             # Reset all selection counters
-            for section in self.selection_counters:
-                self.selection_counters[section] = 0
-
-            for section in self.secondary_counters:
-                for i in range(len(self.secondary_counters[section])):
-                    self.secondary_counters[section][i] = 0
-
-            for corner in self.corner_counters:
-                self.corner_counters[corner] = 0
-
-            self.center_counter = 0
+            self.reset_peripheral_regions()
 
             self.state = "MAIN"  # Reset state to main panel
             self.update_display("MAIN")
@@ -728,8 +735,8 @@ class AAC_GUI():
         print("1-4: Select main sections (top=1, right=2, bottom=3, left=4)")
         print("5: Switch to numbers/letters")
         print("6: Return to main panel")
-        print("7: Delete last character")
-        print("8: Confirm (text-to-speech)")
+        print("7: Delete last character (disabled in secondary panels)")
+        print("8: Confirm (text-to-speech) (disabled in secondary panels)")
         print("9: Space key (center circle)")
         print("1a-1g, 2a-2g, etc: Select specific letters in secondary panels")
         print("Type 'exit' to quit\n")
