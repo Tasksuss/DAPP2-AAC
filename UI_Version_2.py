@@ -12,20 +12,19 @@ import re
 class AAC_GUI():
     """
     This is the main OOP program for creating the interactive GUI.
-    Revised version that accepts terminal commands instead of hover selection.
+    Revised version with 20-sector input system and state-dependent mapping.
     Commands:
-    - 1, 2, 3, 4: Select main sections (top, right, bottom, left)
-    - 5, 6, 7, 8: Corner controls (mode switch, return, delete, confirm)
-    - 9: Center circle (space key)
-    - 1a, 1b, etc: Select specific letters in secondary panels
+    - 1-20: Ring sectors (mapping depends on current state)
+    - 21: Top-left corner (NUM mode)
+    - 22: Top-right corner (RETURN)
+    - 23: Bottom-left corner (DELETE)
+    - 24: Bottom-right corner (CONFIRM)
+    - 25: Center circle (space/decimal point)
     """
 
     RIGHT: list[str] = ['a', 'e', 'i', 'o', 'u']
-
     TOP: list[str] = ["s", "t", "n", "r", "d", "l", "h"]
-
     LEFT: list[str] = ["c", "w", "m", "g", "y", "p", "f"]
-
     BOTTOM: list[str] = ["j", "b", "q", "k", "v", "z", "x"]
 
     # Configuration for selection mechanism
@@ -66,36 +65,69 @@ class AAC_GUI():
         self.current_text = ''
         self.volume = 100  # from 0 to 100
 
-        # Main section selection counters
-        self.selection_counters = {
+        # NEW: Sector-to-function mapping based on current state
+        self.sector_mappings = {
+            # MAIN Interface - sectors map to main sections
+            "MAIN": {
+                "TOP": [3, 4, 5, 6, 7],  # h l d r n t s
+                "LEFT": [8, 9, 10, 11, 12, 13],  # c w m g y p f
+                "BOTTOM": [14, 15, 16, 17, 18],  # j b q k v z x
+                "RIGHT": [19, 20, 1, 2]  # u o i e a
+            },
+            # Individual vowel states
+            "a": {0: [1, 2, 3, 4]},
+            "e": {0: [5, 6, 7, 8]},
+            "i": {0: [9, 10, 11, 12]},
+            "o": {0: [13, 14, 15, 16]},
+            "u": {0: [17, 18, 19, 20]},
+            # Individual consonant states (TOP section)
+            "s": {0: [1, 2, 3]},
+            "t": {0: [4, 5, 6]},
+            "n": {0: [7, 8, 9]},
+            "r": {0: [10, 11]},
+            "d": {0: [12, 13, 14, 15]},
+            "l": {0: [16, 17]},
+            "h": {0: [18, 19, 20]},
+            # NUM Interface
+            "NUM": {
+                "1": [1],
+                "2": [2, 3, 4],
+                "3": [5, 6],
+                "4": [7, 8],
+                "5": [9, 10],
+                "6": [11, 12],
+                "7": [13, 14],
+                "8": [15, 16],
+                "9": [17, 18, 19],
+                "0": [20]
+            }
+        }
+
+        # NEW: Unified counter system for sectors and buttons
+        self.counters = {
+            # Main section counters (for MAIN state)
             "TOP": 0,
             "RIGHT": 0,
             "BOTTOM": 0,
-            "LEFT": 0
+            "LEFT": 0,
+            # Corner button counters
+            "NUM": 0,  # Command 21
+            "RETURN": 0,  # Command 22
+            "DELETE": 0,  # Command 23
+            "CONFIRM": 0,  # Command 24
+            "CENTER": 0,  # Command 25
+            # Secondary selection counters (for character selection in secondary panels)
+            "SECONDARY": {}  # Will be populated dynamically
         }
 
-        # Corner button selection counters
-        self.corner_counters = {
-            "NUM": 0,  # Button 5
-            "RETURN": 0,  # Button 6
-            "DELETE": 0,  # Button 7
-            "CONFIRM": 0  # Button 8
-        }
+        # Initialize secondary counters for each character
+        for section, chars in {"RIGHT": self.RIGHT, "TOP": self.TOP, "LEFT": self.LEFT, "BOTTOM": self.BOTTOM}.items():
+            for i, char in enumerate(chars):
+                self.counters["SECONDARY"][f"{section}_{i}"] = 0
 
-        # Center circle (space key) counter
-        self.center_counter = 0  # Button 9
-
-        # Secondary selection counters (for each letter in each section)
-        self.secondary_counters = {
-            "TOP": [0] * len(self.TOP),
-            "RIGHT": [0] * len(self.RIGHT),
-            "BOTTOM": [0] * len(self.BOTTOM),
-            "LEFT": [0] * len(self.LEFT)
-        }
-
-        # Current active secondary section (if any)
-        self.active_secondary = None
-        self.active_secondary_index = -1
+        # For NUM state counters
+        for num in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]:
+            self.counters["SECONDARY"][f"NUM_{num}"] = 0
 
         # Test for alpha channel support in tkinter
         try:
@@ -105,7 +137,7 @@ class AAC_GUI():
             self.supports_alpha = False
             print("Warning: System doesn't support alpha channels in colors. Using fallback colors.")
 
-        self.root.title("AAC Keyboard - Command Based")
+        self.root.title("AAC Keyboard - 20 Sector System")
         self.canvas = tk.Canvas(self.root, width=500, height=500, bg=self.COLORS["background"])
         self.canvas.pack()
 
@@ -116,7 +148,8 @@ class AAC_GUI():
             "BOTTOM": self.BOTTOM
         }
 
-        self.numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.']
+        # Numbers without decimal point (moved to center)
+        self.numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
         self.character_positions = {}
         self.section_ids = {}  # Store canvas IDs for main sections
         self.secondary_section_ids = {}  # Store canvas IDs for secondary sections
@@ -154,6 +187,13 @@ class AAC_GUI():
         else:
             return self.current_text[-self.MAX_DISPLAY_CHARS:]
 
+    def get_center_circle_text(self) -> str:
+        """Get the text to display in center circle based on current state"""
+        if self.state == "NUM":
+            return "."  # Decimal point in NUM mode
+        else:
+            return self.get_display_text()  # Normal text in other modes
+
     def compute_character_positions(self) -> None:
         """
         Precomputes positions for all characters and buttons.
@@ -162,6 +202,7 @@ class AAC_GUI():
         - Special buttons (NUM, ⟲, ✔, X) use Cartesian coordinates.
 
         MODIFIED: Increased outer ring by 1/3 and inner ring by 1/5
+        MODIFIED: Numbers are now 10 equally spaced (no decimal point)
         """
         center_x, center_y = 250, 250  # Center of the screen
 
@@ -254,9 +295,9 @@ class AAC_GUI():
                     center_y - (ring_radius * 0.9) * math.sin(text_angle)
                 )
 
-        ### --- NUMBERS: 11 Equally Spaced Positions in a Circle --- ###
+        ### --- NUMBERS: 10 Equally Spaced Positions in a Circle (MODIFIED) --- ###
         for i, num in enumerate(self.numbers):
-            # Calculate angle for arc segments
+            # Calculate angle for arc segments - 10 equal divisions
             start_angle = 360 * i / len(self.numbers)
             end_angle = 360 * (i + 1) / len(self.numbers)
 
@@ -302,28 +343,28 @@ class AAC_GUI():
         confirm_x, confirm_y = self.character_positions[("✔", "BUTTON")]
         cancel_x, cancel_y = self.character_positions[("X", "BUTTON")]
 
-        # Draw NUM button (5) - store ID for highlighting
+        # Draw NUM button (21) - store ID for highlighting
         self.corner_button_ids["NUM_BG"] = self.canvas.create_rectangle(
             num_x - 167, num_y - 167, num_x + 167, num_y + 167,
             outline=self.COLORS["border"], fill=self.COLORS["side"], width=3, tags="side_button")
         self.canvas.create_text(num_x, num_y, text="NUM", fill=self.COLORS["text"],
                                 font=self.FONT["middle"], tags="side_button")
 
-        # Draw Return button (6) - store ID for highlighting
+        # Draw Return button (22) - store ID for highlighting
         self.corner_button_ids["RETURN_BG"] = self.canvas.create_rectangle(
             return_x - 167, return_y - 167, return_x + 167, return_y + 167,
             outline=self.COLORS["border"], fill=self.COLORS["side"], width=3, tags="side_button")
         self.canvas.create_text(return_x, return_y, text="⟲", fill=self.COLORS["text"],
                                 font=self.FONT["middle"], tags="side_button")
 
-        # Draw Confirm button (8) - store ID for highlighting
+        # Draw Confirm button (24) - store ID for highlighting
         self.corner_button_ids["CONFIRM_BG"] = self.canvas.create_rectangle(
             confirm_x - 167, confirm_y - 167, confirm_x + 167, confirm_y + 167,
             outline=self.COLORS["border"], fill=self.COLORS["side"], width=3, tags="side_button")
         self.canvas.create_text(confirm_x, confirm_y, text="✔", fill=self.COLORS["confirm"],
                                 font=self.FONT["middle"], tags="side_button")
 
-        # Draw Cancel/Delete button (7) - store ID for highlighting
+        # Draw Cancel/Delete button (23) - store ID for highlighting
         self.corner_button_ids["DELETE_BG"] = self.canvas.create_rectangle(
             cancel_x - 167, cancel_y - 167, cancel_x + 167, cancel_y + 167,
             outline=self.COLORS["border"], fill=self.COLORS["side"], width=3, tags="side_button")
@@ -334,30 +375,30 @@ class AAC_GUI():
         """Update the highlighting of corner buttons based on their counters"""
         # Update NUM button
         if "NUM_BG" in self.corner_button_ids:
-            color = self.get_highlight_color(self.corner_counters["NUM"])
+            color = self.get_highlight_color(self.counters["NUM"])
             self.canvas.itemconfig(self.corner_button_ids["NUM_BG"], fill=color)
 
         # Update RETURN button
         if "RETURN_BG" in self.corner_button_ids:
-            color = self.get_highlight_color(self.corner_counters["RETURN"])
+            color = self.get_highlight_color(self.counters["RETURN"])
             self.canvas.itemconfig(self.corner_button_ids["RETURN_BG"], fill=color)
 
         # Update DELETE button
         if "DELETE_BG" in self.corner_button_ids:
-            color = self.get_highlight_color(self.corner_counters["DELETE"])
+            color = self.get_highlight_color(self.counters["DELETE"])
             self.canvas.itemconfig(self.corner_button_ids["DELETE_BG"], fill=color)
 
         # Update CONFIRM button
         if "CONFIRM_BG" in self.corner_button_ids:
-            color = self.get_highlight_color(self.corner_counters["CONFIRM"])
+            color = self.get_highlight_color(self.counters["CONFIRM"])
             self.canvas.itemconfig(self.corner_button_ids["CONFIRM_BG"], fill=color)
 
     def update_center_circle_highlighting(self):
         """Update the highlighting of center circle based on its counter"""
         if self.center_circle_id:
-            color = self.get_highlight_color(self.center_counter)
+            color = self.get_highlight_color(self.counters["CENTER"])
             # If no highlighting, use background color, otherwise use highlight color
-            if self.center_counter == 0:
+            if self.counters["CENTER"] == 0:
                 color = self.COLORS["background"]
             self.canvas.itemconfig(self.center_circle_id, fill=color)
 
@@ -370,7 +411,7 @@ class AAC_GUI():
                                 outline=self.COLORS["border"],
                                 fill=self.COLORS["background"], width=3, tags="outer_ring")
 
-        # Create the four sections with their command numbers and store their IDs
+        # Create the four sections and store their IDs
         self.section_ids["TOP"] = self.canvas.create_arc(offset, offset, offset + ring_size, offset + ring_size,
                                                          start=45, extent=90,
                                                          outline=self.COLORS["border"],
@@ -406,38 +447,184 @@ class AAC_GUI():
         self.center_circle_id = self.canvas.create_oval(offset, offset, offset + circle_size, offset + circle_size,
                                                         outline=self.COLORS["border"],
                                                         fill=self.COLORS["background"], width=3, tags="center_circle")
-        self.canvas.create_text(250, 250, text=self.get_display_text(), font=self.FONT["large"],
+        # MODIFIED: Use new center circle text function
+        self.canvas.create_text(250, 250, text=self.get_center_circle_text(), font=self.FONT["large"],
                                 fill=self.COLORS["text"], tags="center_text")
 
-    def dim_current_selection(self):
-        """Gradually dim the current selection in secondary panels"""
-        if self.state in ["TOP", "RIGHT", "BOTTOM", "LEFT"]:
-            # Find the highest counter in the current secondary panel
+    def reset_all_counters(self):
+        """Reset all counters to 0"""
+        for key in self.counters:
+            if key == "SECONDARY":
+                for sec_key in self.counters["SECONDARY"]:
+                    self.counters["SECONDARY"][sec_key] = 0
+            else:
+                self.counters[key] = 0
+
+    def process_sector_input(self, sector: int) -> None:
+        """
+        NEW: Process sector input (1-20) based on current state
+        """
+        if self.state == "MAIN":
+            # Check which main section this sector belongs to
+            mapping = self.sector_mappings["MAIN"]
+            for section, sectors in mapping.items():
+                if sector in sectors:
+                    self.counters[section] += 1
+                    if self.counters[section] >= self.SELECTION_THRESHOLD:
+                        self.counters[section] = 0
+                        self.reset_all_counters()
+                        self.state = section
+                        self.update_display(section)
+                    else:
+                        self.update_display("MAIN")
+                    return
+
+            # If sector doesn't match any mapping, dim current selection
+            self.dim_current_selection()
+
+        elif self.state in ["RIGHT", "TOP", "LEFT", "BOTTOM"]:
+            # In secondary panel, check character-specific mappings
             section = self.state
-            max_counter = max(self.secondary_counters[section])
-            if max_counter > 0:
-                # Find the index with the highest counter and decrement it
-                for i, counter in enumerate(self.secondary_counters[section]):
-                    if counter == max_counter:
-                        self.secondary_counters[section][i] = max(0, counter - 1)
-                        break
-                # Update the display to show the dimming
-                self.update_display(self.state)
+            chars = self.letters[section]
 
-    def reset_peripheral_regions(self):
-        """Reset all peripheral region's progress and brightness to 0"""
-        # Reset all selection counters
-        for section in self.selection_counters:
-            self.selection_counters[section] = 0
+            # Find which character this sector corresponds to
+            for i, char in enumerate(chars):
+                counter_key = f"{section}_{i}"
 
-        for section in self.secondary_counters:
-            for i in range(len(self.secondary_counters[section])):
-                self.secondary_counters[section][i] = 0
+                # For individual character states, we need to check if we're in that state
+                if char in self.sector_mappings and sector in self.sector_mappings[char][0]:
+                    self.counters["SECONDARY"][counter_key] += 1
+                    if self.counters["SECONDARY"][counter_key] >= self.SELECTION_THRESHOLD:
+                        self.add_character(char)
+                    else:
+                        self.update_display(section)
+                    return
 
-        for corner in self.corner_counters:
-            self.corner_counters[corner] = 0
+            # If no match found, dim current selection
+            self.dim_current_selection()
 
-        self.center_counter = 0
+        elif self.state == "NUM":
+            # In NUM panel, check number mappings
+            mapping = self.sector_mappings["NUM"]
+            for number, sectors in mapping.items():
+                if sector in sectors:
+                    counter_key = f"NUM_{number}"
+                    self.counters["SECONDARY"][counter_key] += 1
+                    if self.counters["SECONDARY"][counter_key] >= self.SELECTION_THRESHOLD:
+                        self.add_number(number)
+                    else:
+                        self.update_display("NUM")
+                    return
+
+            # If sector doesn't match any mapping, dim current selection
+            self.dim_current_selection()
+
+    def process_button_input(self, button_code: int) -> None:
+        """
+        NEW: Process button input (21-25)
+        21: NUM, 22: RETURN, 23: DELETE, 24: CONFIRM, 25: CENTER
+        """
+        if button_code == 21:  # NUM
+            self.counters["NUM"] += 1
+            if self.counters["NUM"] >= self.SELECTION_THRESHOLD:
+                self.counters["NUM"] = 0
+                self.reset_all_counters()
+                self.update_display("NUM")
+            else:
+                self.update_corner_button_highlighting()
+
+        elif button_code == 22:  # RETURN
+            self.counters["RETURN"] += 1
+            if self.counters["RETURN"] >= self.SELECTION_THRESHOLD:
+                self.counters["RETURN"] = 0
+                self.reset_all_counters()
+                self.state = "MAIN"
+                self.update_display("MAIN")
+            else:
+                self.update_corner_button_highlighting()
+
+        elif button_code == 23:  # DELETE
+            # Disable in secondary panels (except NUM)
+            if self.state in ["TOP", "RIGHT", "BOTTOM", "LEFT"]:
+                return
+
+            self.counters["DELETE"] += 1
+            if self.counters["DELETE"] >= self.SELECTION_THRESHOLD:
+                self.counters["DELETE"] = 0
+                if self.current_text:
+                    self.current_text = self.current_text[:-1]
+                    self.update_display(self.state)
+                else:
+                    self.tts("No")
+            else:
+                self.update_corner_button_highlighting()
+
+        elif button_code == 24:  # CONFIRM
+            # Disable in secondary panels (except NUM)
+            if self.state in ["TOP", "RIGHT", "BOTTOM", "LEFT"]:
+                return
+
+            self.counters["CONFIRM"] += 1
+            if self.counters["CONFIRM"] >= self.SELECTION_THRESHOLD:
+                self.counters["CONFIRM"] = 0
+                if self.current_text:
+                    self.confirm_text()
+                else:
+                    self.tts("Yes")
+            else:
+                self.update_corner_button_highlighting()
+
+        elif button_code == 25:  # CENTER
+            self.counters["CENTER"] += 1
+            if self.counters["CENTER"] >= self.SELECTION_THRESHOLD:
+                self.counters["CENTER"] = 0
+                if self.state == "NUM":
+                    self.add_decimal_point()
+                else:
+                    self.add_space()
+            else:
+                self.update_center_circle_highlighting()
+
+    def dim_current_selection(self):
+        """Gradually dim the current selection"""
+        if self.state == "MAIN":
+            # Find highest main section counter and decrement
+            max_counter = 0
+            max_section = None
+            for section in ["TOP", "RIGHT", "BOTTOM", "LEFT"]:
+                if self.counters[section] > max_counter:
+                    max_counter = self.counters[section]
+                    max_section = section
+            if max_section:
+                self.counters[max_section] = max(0, self.counters[max_section] - 1)
+                self.update_display("MAIN")
+
+        elif self.state in ["TOP", "RIGHT", "BOTTOM", "LEFT"]:
+            # Find highest secondary counter and decrement
+            section = self.state
+            max_counter = 0
+            max_key = None
+            for i in range(len(self.letters[section])):
+                counter_key = f"{section}_{i}"
+                if self.counters["SECONDARY"][counter_key] > max_counter:
+                    max_counter = self.counters["SECONDARY"][counter_key]
+                    max_key = counter_key
+            if max_key:
+                self.counters["SECONDARY"][max_key] = max(0, self.counters["SECONDARY"][max_key] - 1)
+                self.update_display(section)
+
+        elif self.state == "NUM":
+            # Find highest number counter and decrement
+            max_counter = 0
+            max_key = None
+            for num in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]:
+                counter_key = f"NUM_{num}"
+                if self.counters["SECONDARY"][counter_key] > max_counter:
+                    max_counter = self.counters["SECONDARY"][counter_key]
+                    max_key = counter_key
+            if max_key:
+                self.counters["SECONDARY"][max_key] = max(0, self.counters["SECONDARY"][max_key] - 1)
+                self.update_display("NUM")
 
     def update_display(self, option: str) -> None:
         """
@@ -448,6 +635,7 @@ class AAC_GUI():
         - 'NUM'   -> Displays numeric keypad in a full circle.
 
         Modified: Updated ring sizes and added larger offset calculations
+        MODIFIED: Numbers now use 10 equal divisions instead of 11
         """
         # Clear only the ring and character elements, keep side buttons
         self.canvas.delete("ring")
@@ -471,7 +659,7 @@ class AAC_GUI():
             self.section_ids = {}  # Reset section IDs
 
             # Create TOP section
-            counter_top = self.selection_counters["TOP"]
+            counter_top = self.counters["TOP"]
             self.section_ids["TOP"] = self.canvas.create_arc(
                 offset, offset, offset + ring_size, offset + ring_size, start=45, extent=90,
                 outline=self.COLORS["border"],
@@ -480,7 +668,7 @@ class AAC_GUI():
             )
 
             # Create RIGHT section
-            counter_right = self.selection_counters["RIGHT"]
+            counter_right = self.counters["RIGHT"]
             self.section_ids["RIGHT"] = self.canvas.create_arc(
                 offset, offset, offset + ring_size, offset + ring_size, start=315, extent=90,
                 outline=self.COLORS["border"],
@@ -489,7 +677,7 @@ class AAC_GUI():
             )
 
             # Create BOTTOM section
-            counter_bottom = self.selection_counters["BOTTOM"]
+            counter_bottom = self.counters["BOTTOM"]
             self.section_ids["BOTTOM"] = self.canvas.create_arc(
                 offset, offset, offset + ring_size, offset + ring_size, start=225, extent=90,
                 outline=self.COLORS["border"],
@@ -498,7 +686,7 @@ class AAC_GUI():
             )
 
             # Create LEFT section
-            counter_left = self.selection_counters["LEFT"]
+            counter_left = self.counters["LEFT"]
             self.section_ids["LEFT"] = self.canvas.create_arc(
                 offset, offset, offset + ring_size, offset + ring_size, start=135, extent=90,
                 outline=self.COLORS["border"],
@@ -514,19 +702,23 @@ class AAC_GUI():
                                             font=self.FONT["small"], tags="main_characters")
 
         elif option == "NUM":
-            # Display numeric characters in circular layout with full 360-degree arcs
+            # MODIFIED: Display numeric characters in circular layout with 10 equal divisions
             self.secondary_section_ids = {}
 
-            # Create arcs for each number
+            # Create arcs for each number (now 10 instead of 11)
             for i, num in enumerate(self.numbers):
                 start_angle = self.character_positions[(f"{num}_start", "NUM")]
                 end_angle = self.character_positions[(f"{num}_end", "NUM")]
                 extent = end_angle - start_angle
 
+                # Get counter for highlighting
+                counter_key = f"NUM_{num}"
+                counter = self.counters["SECONDARY"][counter_key]
+
                 # Create arc for this number
                 self.secondary_section_ids[num] = self.canvas.create_arc(
                     offset, offset, offset + ring_size, offset + ring_size, start=start_angle, extent=extent,
-                    outline=self.COLORS["border"], fill=self.COLORS["ring"],
+                    outline=self.COLORS["border"], fill=self.get_highlight_color(counter),
                     width=3, tags=("ring", "secondary", f"num_{i}")
                 )
 
@@ -548,7 +740,8 @@ class AAC_GUI():
                 extent = end_angle - start_angle
 
                 # Create arc for this character with appropriate highlighting
-                counter = self.secondary_counters[section][i]
+                counter_key = f"{section}_{i}"
+                counter = self.counters["SECONDARY"][counter_key]
                 fill_color = self.get_highlight_color(counter)
 
                 self.secondary_section_ids[char] = self.canvas.create_arc(
@@ -579,114 +772,52 @@ class AAC_GUI():
         # Update center circle highlighting
         self.update_center_circle_highlighting()
 
-        # Display truncated text
-        self.canvas.create_text(250, 250, text=self.get_display_text(), font=self.FONT["large"],
+        # MODIFIED: Display appropriate text based on mode
+        self.canvas.create_text(250, 250, text=self.get_center_circle_text(), font=self.FONT["large"],
                                 fill=self.COLORS["text"], tags="center_text")
 
         self.state = option  # Update the state of the interface
-        self.active_secondary = None  # Reset active secondary selection
-        self.active_secondary_index = -1
-
-    def select_option(self, option: str) -> None:
-        """Handles selection of quadrants (LEFT, RIGHT, etc.) and updates state"""
-        if option in self.selection_counters:
-            # Increment the counter for this section
-            self.selection_counters[option] += 1
-
-            # If counter reaches threshold, activate secondary panel
-            if self.selection_counters[option] >= self.SELECTION_THRESHOLD:
-                self.selection_counters[option] = 0  # Reset counter
-                # MODIFICATION: Reset all peripheral regions when transitioning to secondary panel
-                self.reset_peripheral_regions()
-                self.state = option  # Activate secondary panel
-                self.update_display(option)
-            else:
-                # Just update highlighting in MAIN state
-                self.update_display("MAIN")
-        else:
-            self.state = option
-            self.update_display(option)
-
-    def select_corner_button(self, button: str) -> None:
-        """Handles selection of corner buttons with gradual lighting"""
-        # MODIFICATION: Disable keys 7 and 8 in secondary panels (except NUM which allows transition to numbers)
-        if self.state in ["TOP", "RIGHT", "BOTTOM", "LEFT"] and button in ["DELETE", "CONFIRM"]:
-            # Keys 7 and 8 are disabled in secondary panels, do nothing
-            return
-
-        if button in self.corner_counters:
-            # Increment the counter for this corner button
-            self.corner_counters[button] += 1
-
-            # If counter reaches threshold, execute the button action
-            if self.corner_counters[button] >= self.SELECTION_THRESHOLD:
-                self.corner_counters[button] = 0  # Reset counter
-                self.handle_side_buttons(button)
-            else:
-                # Just update highlighting
-                self.update_corner_button_highlighting()
-
-    def select_center_circle(self) -> None:
-        """Handles selection of center circle (space key) with gradual lighting"""
-        # Increment the counter for center circle
-        self.center_counter += 1
-
-        # If counter reaches threshold, add space
-        if self.center_counter >= self.SELECTION_THRESHOLD:
-            self.center_counter = 0  # Reset counter
-            self.add_space()
-        else:
-            # Just update highlighting
-            self.update_center_circle_highlighting()
-
-    def add_space(self) -> None:
-        """Adds a space to the current text"""
-        self.current_text += ' '
-
-        # Reset all selection counters
-        self.reset_peripheral_regions()
-
-        # Update display to show new text
-        self.update_display(self.state)
-
-    def select_secondary_option(self, section: str, index: int) -> None:
-        """Handles selection of secondary options and updates state"""
-        if section in self.secondary_counters and 0 <= index < len(self.secondary_counters[section]):
-            # Store the active secondary section and index
-            self.active_secondary = section
-            self.active_secondary_index = index
-
-            # Increment the counter for this secondary option
-            self.secondary_counters[section][index] += 1
-
-            # If counter reaches threshold, select this character
-            if self.secondary_counters[section][index] >= self.SELECTION_THRESHOLD:
-                # Add the character to current text
-                char = self.letters[section][index]
-                self.add_character(char)
-
-                # Reset counter
-                self.secondary_counters[section][index] = 0
-
-                # Return to main panel
-                self.active_secondary = None
-                self.active_secondary_index = -1
-            else:
-                # Just update the display to show highlighting
-                self.update_display(section)
-        else:
-            print(f"Invalid secondary option: {section}, index {index}")
 
     def add_character(self, char: str) -> None:
         """Adds the selected letter to current_text"""
         self.current_text += char
 
-        # Reset all selection counters
-        self.reset_peripheral_regions()
+        # Reset all counters
+        self.reset_all_counters()
 
         # Return to main state
         self.state = "MAIN"
         self.update_display("MAIN")
+
+    def add_number(self, num: str) -> None:
+        """ADDED: Adds the selected number to current_text"""
+        self.current_text += num
+
+        # Reset all counters
+        self.reset_all_counters()
+
+        # Stay in NUM state (don't return to MAIN automatically)
+        self.update_display("NUM")
+
+    def add_space(self) -> None:
+        """Adds a space to the current text"""
+        self.current_text += ' '
+
+        # Reset all counters
+        self.reset_all_counters()
+
+        # Update display to show new text
+        self.update_display(self.state)
+
+    def add_decimal_point(self) -> None:
+        """ADDED: Adds a decimal point to the current text"""
+        self.current_text += '.'
+
+        # Reset all counters
+        self.reset_all_counters()
+
+        # Update display to show new text
+        self.update_display(self.state)
 
     def confirm_text(self) -> None:
         """Convert current text to speech and clear"""
@@ -695,50 +826,23 @@ class AAC_GUI():
             self.current_text = ""
 
             # Reset all counters and return to main state
-            self.reset_peripheral_regions()
+            self.reset_all_counters()
 
             self.state = "MAIN"
             self.update_display("MAIN")
 
-    def handle_side_buttons(self, button: str) -> None:
-        """
-        Handles side button clicks including Confirm, Cancel, Number Toggle, and Return.
-        """
-        if button == "NUM":
-            # MODIFICATION: Reset all peripheral regions when transitioning to NUM panel
-            self.reset_peripheral_regions()
-            self.update_display("NUM")
-        elif button == "RETURN":
-            # Reset all selection counters
-            self.reset_peripheral_regions()
-
-            self.state = "MAIN"  # Reset state to main panel
-            self.update_display("MAIN")
-        elif button == "CONFIRM":
-            if self.current_text != "":
-                self.confirm_text()
-            else:
-                self.tts("Yes")
-        elif button == "DELETE":
-            if self.current_text:
-                self.current_text = self.current_text[:-1]  # Delete last char
-                self.update_display(self.state)
-            else:
-                self.tts("No")  # When empty, output "No"
-
     def command_listener(self):
         """Listen for commands from the terminal"""
-        print("\nWelcome to AAC Keyboard - Command Based")
+        print("\nWelcome to AAC Keyboard - 20 Sector System")
         print(f"Selection threshold: {self.SELECTION_THRESHOLD} commands")
         print(f"Display limit: {self.MAX_DISPLAY_CHARS} characters")
         print("Commands:")
-        print("1-4: Select main sections (top=1, right=2, bottom=3, left=4)")
-        print("5: Switch to numbers/letters")
-        print("6: Return to main panel")
-        print("7: Delete last character (disabled in secondary panels)")
-        print("8: Confirm (text-to-speech) (disabled in secondary panels)")
-        print("9: Space key (center circle)")
-        print("1a-1g, 2a-2g, etc: Select specific letters in secondary panels")
+        print("1-20: Ring sectors (mapping depends on current state)")
+        print("21: NUM mode (top-left corner)")
+        print("22: Return to main panel (top-right corner)")
+        print("23: Delete last character (bottom-left corner)")
+        print("24: Confirm/text-to-speech (bottom-right corner)")
+        print("25: Space/decimal point (center circle)")
         print("Type 'exit' to quit\n")
 
         while True:
@@ -754,67 +858,33 @@ class AAC_GUI():
                 print(f"Error processing command: {e}")
 
     def process_command(self, cmd: str):
-        """Process the received command and update UI accordingly"""
+        """
+        NEW: Process the received command for 20-sector system
+        """
         try:
             if cmd.lower() == 'exit':
                 self.root.quit()
                 return
 
-            # Check for main section commands (1-4)
-            if cmd == '1':
-                if self.state == "MAIN":
-                    self.select_option("TOP")
-                elif self.state in ["RIGHT", "BOTTOM", "LEFT", "NUM"]:
-                    self.dim_current_selection()
-            elif cmd == '2':
-                if self.state == "MAIN":
-                    self.select_option("RIGHT")
-                elif self.state in ["TOP", "BOTTOM", "LEFT", "NUM"]:
-                    self.dim_current_selection()
-            elif cmd == '3':
-                if self.state == "MAIN":
-                    self.select_option("BOTTOM")
-                elif self.state in ["TOP", "RIGHT", "LEFT", "NUM"]:
-                    self.dim_current_selection()
-            elif cmd == '4':
-                if self.state == "MAIN":
-                    self.select_option("LEFT")
-                elif self.state in ["TOP", "RIGHT", "BOTTOM", "NUM"]:
-                    self.dim_current_selection()
+            # Parse the command
+            try:
+                command_num = int(cmd)
+            except ValueError:
+                print("Invalid command. Please use numbers 1-25")
+                self.dim_current_selection()
+                return
 
-            # Check for corner commands (5-8)
-            elif cmd == '5':
-                self.select_corner_button("NUM")
-            elif cmd == '6':
-                self.select_corner_button("RETURN")
-            elif cmd == '7':
-                self.select_corner_button("DELETE")
-            elif cmd == '8':
-                self.select_corner_button("CONFIRM")
-
-            # Check for center circle command (9) - space key
-            elif cmd == '9':
-                self.select_center_circle()
-
-            # Check for secondary selection commands (e.g., 1a, 2b)
-            elif re.match(r'^[1-4][a-g]$', cmd):
-                section_num = int(cmd[0])
-                char_index = ord(cmd[1]) - ord('a')
-
-                # Map section number to section name
-                section_map = {1: "TOP", 2: "RIGHT", 3: "BOTTOM", 4: "LEFT"}
-                section = section_map.get(section_num)
-
-                if section and self.state == section and char_index < len(self.letters[section]):
-                    # We're in the correct secondary panel, so select this character
-                    self.select_secondary_option(section, char_index)
-                else:
-                    # Wrong panel or invalid character, dim current selection
-                    self.dim_current_selection()
+            # Process based on command range
+            if 1 <= command_num <= 20:
+                # Ring sector commands
+                self.process_sector_input(command_num)
+            elif 21 <= command_num <= 25:
+                # Button commands
+                self.process_button_input(command_num)
             else:
-                print("Invalid command. Please use 1-9 or section+letter (e.g., 1a)")
-                if self.state in ["TOP", "RIGHT", "BOTTOM", "LEFT", "NUM"]:
-                    self.dim_current_selection()
+                print("Invalid command. Please use numbers 1-25")
+                self.dim_current_selection()
+
         except Exception as e:
             print(f"Error in process_command: {e}")
 
