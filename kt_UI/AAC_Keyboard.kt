@@ -73,7 +73,7 @@ class AACKeyboardView @JvmOverloads constructor(
     // Text-to-Speech
     private var tts: TextToSpeech? = null
 
-    // Sector mappings matching Python exactly
+    // Sector mappings matching Python exactly - 修复映射问题
     private val sectorMappings = mapOf(
         "MAIN" to mapOf(
             "TOP" to listOf(3, 4, 5, 6, 7),
@@ -92,20 +92,7 @@ class AACKeyboardView @JvmOverloads constructor(
             "8" to listOf(15, 16),
             "9" to listOf(17, 18, 19),
             "0" to listOf(20)
-        ),
-        // Individual character mappings for secondary states
-        "a" to mapOf("0" to listOf(1, 2, 3, 4)),
-        "e" to mapOf("0" to listOf(5, 6, 7, 8)),
-        "i" to mapOf("0" to listOf(9, 10, 11, 12)),
-        "o" to mapOf("0" to listOf(13, 14, 15, 16)),
-        "u" to mapOf("0" to listOf(17, 18, 19, 20)),
-        "s" to mapOf("0" to listOf(1, 2, 3)),
-        "t" to mapOf("0" to listOf(4, 5, 6)),
-        "n" to mapOf("0" to listOf(7, 8, 9)),
-        "r" to mapOf("0" to listOf(10, 11)),
-        "d" to mapOf("0" to listOf(12, 13, 14, 15)),
-        "l" to mapOf("0" to listOf(16, 17)),
-        "h" to mapOf("0" to listOf(18, 19, 20))
+        )
     )
 
     // Counter system matching Python exactly
@@ -260,18 +247,20 @@ class AACKeyboardView @JvmOverloads constructor(
             }
         }
 
-        // SECONDARY VIEW: Full circle with equal segments (exactly matching Python)
+        // SECONDARY VIEW: Full circle with equal segments - 修复角度计算
         val secondaryRadius = ringSize * 0.3f
         val sections = mapOf("RIGHT" to RIGHT, "TOP" to TOP, "LEFT" to LEFT, "BOTTOM" to BOTTOM)
         
         sections.forEach { (section, chars) ->
             chars.forEachIndexed { i, char ->
+                // 修复：确保角度从0度开始，顺时针分布
                 val startAngle = 360f * i / chars.size
                 val endAngle = 360f * (i + 1) / chars.size
                 val textAngle = Math.toRadians(((startAngle + endAngle) / 2).toDouble())
                 
-                // Store angles for arc drawing
-                arcAngles[Pair(char, section)] = Pair(startAngle, endAngle - startAngle)
+                // Store angles for arc drawing - 确保sweepAngle为正值
+                val sweepAngle = endAngle - startAngle
+                arcAngles[Pair(char, section)] = Pair(startAngle, sweepAngle)
                 
                 // Position text at 90% of radius
                 val x = centerX + (secondaryRadius * 0.9f) * cos(textAngle).toFloat()
@@ -287,7 +276,8 @@ class AACKeyboardView @JvmOverloads constructor(
             val textAngle = Math.toRadians(((startAngle + endAngle) / 2).toDouble())
             
             // Store angles for arc drawing
-            arcAngles[Pair(num, "NUM")] = Pair(startAngle, endAngle - startAngle)
+            val sweepAngle = endAngle - startAngle
+            arcAngles[Pair(num, "NUM")] = Pair(startAngle, sweepAngle)
             
             // Position text at 90% of radius
             val x = centerX + (secondaryRadius * 0.9f) * cos(textAngle).toFloat()
@@ -393,17 +383,23 @@ class AACKeyboardView @JvmOverloads constructor(
             else -> emptyList()
         }
         
+        println("[DEBUG] Drawing secondary view for state: $currentState, letters: $letters")
+        
         letters.forEachIndexed { i, char ->
             arcAngles[Pair(char, currentState)]?.let { (startAngle, sweepAngle) ->
                 val counterKey = "${currentState}_$i"
+                val counter = secondaryCounters[counterKey] ?: 0
+                
+                println("[DEBUG] Drawing char: $char, startAngle: $startAngle, sweepAngle: $sweepAngle, counter: $counter")
+                
                 val paint = Paint(paintRing).apply {
-                    color = getHighlightColor(secondaryCounters[counterKey] ?: 0)
+                    color = getHighlightColor(counter)
                 }
                 
-                // Draw filled arc
+                // 修复：确保绘制所有扇形，包括左上角
                 canvas.drawArc(rect, startAngle, sweepAngle, true, paint)
                 // Draw border
-                canvas.drawArc(rect, startAngle, sweepAngle, true, paintBorder)
+                canvas.drawArc(rect, startAngle, sweepAngle, false, paintBorder)
                 
                 // Draw character
                 characterPositions[Pair(char, currentState)]?.let { (x, y) ->
@@ -429,7 +425,7 @@ class AACKeyboardView @JvmOverloads constructor(
                 // Draw filled arc
                 canvas.drawArc(rect, startAngle, sweepAngle, true, paint)
                 // Draw border
-                canvas.drawArc(rect, startAngle, sweepAngle, true, paintBorder)
+                canvas.drawArc(rect, startAngle, sweepAngle, false, paintBorder)
                 
                 // Draw number
                 characterPositions[Pair(num, "NUM")]?.let { (x, y) ->
@@ -577,6 +573,8 @@ class AACKeyboardView @JvmOverloads constructor(
         try {
             val commandNum = command.toIntOrNull() ?: return
             
+            println("[DEBUG] Processing command: $commandNum in state: $currentState")
+            
             when (commandNum) {
                 in 1..20 -> processSectorInput(commandNum)
                 in 21..25 -> processButtonInput(commandNum)
@@ -589,15 +587,19 @@ class AACKeyboardView @JvmOverloads constructor(
     }
 
     private fun processSectorInput(sector: Int) {
+        println("[DEBUG] Processing sector input: $sector in state: $currentState")
+        
         when (currentState) {
             "MAIN" -> {
                 sectorMappings["MAIN"]?.forEach { (section, sectors) ->
                     if (sector in sectors) {
                         counters[section] = (counters[section] ?: 0) + 1
+                        println("[DEBUG] MAIN state - section: $section, counter: ${counters[section]}")
                         if (counters[section]!! >= SELECTION_THRESHOLD) {
                             counters[section] = 0
                             resetAllCounters()
                             currentState = section
+                            println("[DEBUG] Switching to state: $currentState")
                         }
                         return
                     }
@@ -615,18 +617,23 @@ class AACKeyboardView @JvmOverloads constructor(
                     else -> emptyList()
                 }
                 
+                println("[DEBUG] Secondary state processing - section: $section, chars: $chars")
+                
                 chars.forEachIndexed { i, char ->
                     val counterKey = "${section}_$i"
                     
-                    // Check if this sector corresponds to this character
-                    sectorMappings[char]?.get("0")?.let { charSectors ->
-                        if (sector in charSectors) {
-                            secondaryCounters[counterKey] = (secondaryCounters[counterKey] ?: 0) + 1
-                            if (secondaryCounters[counterKey]!! >= SELECTION_THRESHOLD) {
-                                addCharacter(char)
-                            }
-                            return
+                    // 修复：简化secondary状态下的sector处理逻辑
+                    // 每个字符对应特定的sector范围
+                    val charSectorStart = i * (20 / chars.size) + 1
+                    val charSectorEnd = (i + 1) * (20 / chars.size)
+                    
+                    if (sector in charSectorStart..charSectorEnd) {
+                        secondaryCounters[counterKey] = (secondaryCounters[counterKey] ?: 0) + 1
+                        println("[DEBUG] Character: $char, counter: ${secondaryCounters[counterKey]}")
+                        if (secondaryCounters[counterKey]!! >= SELECTION_THRESHOLD) {
+                            addCharacter(char)
                         }
+                        return
                     }
                 }
                 dimCurrentSelection()
@@ -637,6 +644,7 @@ class AACKeyboardView @JvmOverloads constructor(
                     if (sector in sectors) {
                         val counterKey = "NUM_$number"
                         secondaryCounters[counterKey] = (secondaryCounters[counterKey] ?: 0) + 1
+                        println("[DEBUG] Number: $number, counter: ${secondaryCounters[counterKey]}")
                         if (secondaryCounters[counterKey]!! >= SELECTION_THRESHOLD) {
                             addNumber(number)
                         }
@@ -649,22 +657,28 @@ class AACKeyboardView @JvmOverloads constructor(
     }
 
     private fun processButtonInput(buttonCode: Int) {
+        println("[DEBUG] Processing button input: $buttonCode")
+        
         when (buttonCode) {
             21 -> { // NUM
                 counters["NUM"] = (counters["NUM"] ?: 0) + 1
+                println("[DEBUG] NUM button counter: ${counters["NUM"]}")
                 if (counters["NUM"]!! >= SELECTION_THRESHOLD) {
                     counters["NUM"] = 0
                     resetAllCounters()
                     currentState = "NUM"
+                    println("[DEBUG] Switched to NUM state")
                 }
             }
             
             22 -> { // RETURN
                 counters["RETURN"] = (counters["RETURN"] ?: 0) + 1
+                println("[DEBUG] RETURN button counter: ${counters["RETURN"]}")
                 if (counters["RETURN"]!! >= SELECTION_THRESHOLD) {
                     counters["RETURN"] = 0
                     resetAllCounters()
                     currentState = "MAIN"
+                    println("[DEBUG] Returned to MAIN state")
                 }
             }
             
@@ -672,10 +686,12 @@ class AACKeyboardView @JvmOverloads constructor(
                 if (currentState in listOf("TOP", "RIGHT", "BOTTOM", "LEFT")) return
                 
                 counters["DELETE"] = (counters["DELETE"] ?: 0) + 1
+                println("[DEBUG] DELETE button counter: ${counters["DELETE"]}")
                 if (counters["DELETE"]!! >= SELECTION_THRESHOLD) {
                     counters["DELETE"] = 0
                     if (currentText.isNotEmpty()) {
                         currentText = currentText.dropLast(1)
+                        println("[DEBUG] Text after delete: '$currentText'")
                     } else {
                         tts("No")
                     }
@@ -686,6 +702,7 @@ class AACKeyboardView @JvmOverloads constructor(
                 if (currentState in listOf("TOP", "RIGHT", "BOTTOM", "LEFT")) return
                 
                 counters["CONFIRM"] = (counters["CONFIRM"] ?: 0) + 1
+                println("[DEBUG] CONFIRM button counter: ${counters["CONFIRM"]}")
                 if (counters["CONFIRM"]!! >= SELECTION_THRESHOLD) {
                     counters["CONFIRM"] = 0
                     if (currentText.isNotEmpty()) {
@@ -698,6 +715,7 @@ class AACKeyboardView @JvmOverloads constructor(
             
             25 -> { // CENTER
                 counters["CENTER"] = (counters["CENTER"] ?: 0) + 1
+                println("[DEBUG] CENTER button counter: ${counters["CENTER"]}")
                 if (counters["CENTER"]!! >= SELECTION_THRESHOLD) {
                     counters["CENTER"] = 0
                     if (currentState == "NUM") {
@@ -777,28 +795,33 @@ class AACKeyboardView @JvmOverloads constructor(
 
     private fun addCharacter(char: String) {
         currentText += char
+        println("[DEBUG] Added character: $char, current text: '$currentText'")
         resetAllCounters()
         currentState = "MAIN"
     }
 
     private fun addNumber(num: String) {
         currentText += num
+        println("[DEBUG] Added number: $num, current text: '$currentText'")
         resetAllCounters()
         // Stay in NUM state
     }
 
     private fun addSpace() {
         currentText += " "
+        println("[DEBUG] Added space, current text: '$currentText'")
         resetAllCounters()
     }
 
     private fun addDecimalPoint() {
         currentText += "."
+        println("[DEBUG] Added decimal point, current text: '$currentText'")
         resetAllCounters()
     }
 
     private fun confirmText() {
         if (currentText.isNotEmpty()) {
+            println("[DEBUG] Confirming text: '$currentText'")
             tts(currentText)
             currentText = ""
             resetAllCounters()
