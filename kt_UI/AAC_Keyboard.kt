@@ -58,6 +58,13 @@ class AACKeyboardView @JvmOverloads constructor(
     private var canvasHeight = 500f
     private var ringSize = 400f
     private var innerRadius = 60f
+    
+    // Square boundary for Google Glass rectangular screen
+    private var squareSize = 0f
+    private var squareLeft = 0f
+    private var squareTop = 0f
+    private var squareRight = 0f
+    private var squareBottom = 0f
 
     // State variables
     private var currentState = "MAIN"
@@ -127,7 +134,6 @@ class AACKeyboardView @JvmOverloads constructor(
         initializePaints()
         initializeCounters()
         initializeTTS()
-        computeCharacterPositions()
         startSocketListener()
     }
 
@@ -193,11 +199,19 @@ class AACKeyboardView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         
-        // Scale everything proportionally to maintain aspect ratio
-        val scale = minOf(w.toFloat() / canvasWidth, h.toFloat() / canvasHeight)
-        
+        // Calculate square boundary for rectangular Google Glass screen
+        squareSize = minOf(w, h).toFloat()
         centerX = w / 2f
         centerY = h / 2f
+        
+        // Define square boundaries
+        squareLeft = centerX - squareSize / 2
+        squareTop = centerY - squareSize / 2
+        squareRight = centerX + squareSize / 2
+        squareBottom = centerY + squareSize / 2
+        
+        // Scale ring and inner circle based on square size
+        val scale = squareSize / canvasWidth
         ringSize = 400f * scale
         innerRadius = 60f * scale
         
@@ -288,11 +302,24 @@ class AACKeyboardView @JvmOverloads constructor(
         // Clear background
         canvas.drawColor(colorBackground)
         
+        // Draw square boundary for Google Glass rectangular screen
+        drawSquareBoundary(canvas)
+        
         // Draw in correct order - matching Python exactly
         drawMainRing(canvas)
         drawCurrentStateContent(canvas)
-        drawCornerButtons(canvas)
+        drawWedgeCornerButtons(canvas)
         drawCenterCircle(canvas)
+    }
+
+    private fun drawSquareBoundary(canvas: Canvas) {
+        val boundaryPaint = Paint(paintBorder).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 4f
+            alpha = 128 // Semi-transparent to show boundary without being intrusive
+        }
+        
+        canvas.drawRect(squareLeft, squareTop, squareRight, squareBottom, boundaryPaint)
     }
 
     private fun drawMainRing(canvas: Canvas) {
@@ -412,50 +439,89 @@ class AACKeyboardView @JvmOverloads constructor(
         }
     }
 
-    private fun drawCornerButtons(canvas: Canvas) {
-        val buttonSize = ringSize * 0.2f
-        val margin = ringSize * 0.1f
+    private fun drawWedgeCornerButtons(canvas: Canvas) {
+        // Calculate wedge dimensions - each button extends exactly half the square side length
+        val halfSide = squareSize / 4f  // Half of half the square (quarter of total)
+        val circleRadius = ringSize / 2f
         
-        // Button positions - matching Python layout exactly
+        // Button data: text, position, key
         val buttons = listOf(
-            Triple("NUM", centerX - ringSize/2 + margin + buttonSize/2,
-                  centerY - ringSize/2 + margin + buttonSize/2),
-            Triple("⟲", centerX + ringSize/2 - margin - buttonSize/2,
-                  centerY - ringSize/2 + margin + buttonSize/2),
-            Triple("X", centerX - ringSize/2 + margin + buttonSize/2,
-                  centerY + ringSize/2 - margin - buttonSize/2),
-            Triple("✔", centerX + ringSize/2 - margin - buttonSize/2,
-                  centerY + ringSize/2 - margin - buttonSize/2)
+            Triple("NUM", Pair(squareLeft, squareTop), "NUM"),           // Top-left
+            Triple("⟲", Pair(squareRight, squareTop), "RETURN"),        // Top-right  
+            Triple("X", Pair(squareLeft, squareBottom), "DELETE"),       // Bottom-left
+            Triple("✔", Pair(squareRight, squareBottom), "CONFIRM")     // Bottom-right
         )
         
-        buttons.forEach { (text, x, y) ->
-            val buttonKey = when (text) {
-                "NUM" -> "NUM"
-                "⟲" -> "RETURN"
-                "X" -> "DELETE"
-                "✔" -> "CONFIRM"
-                else -> ""
+        buttons.forEach { (text, pos, buttonKey) ->
+            val (cornerX, cornerY) = pos
+            
+            // Create wedge path (intersection of circle and square corner)
+            val wedgePath = Path()
+            
+            // Determine wedge boundaries based on corner position
+            when {
+                cornerX == squareLeft && cornerY == squareTop -> {
+                    // Top-left wedge
+                    wedgePath.moveTo(squareLeft, squareTop)
+                    wedgePath.lineTo(squareLeft + halfSide, squareTop)
+                    wedgePath.lineTo(squareLeft, squareTop + halfSide)
+                    wedgePath.close()
+                }
+                cornerX == squareRight && cornerY == squareTop -> {
+                    // Top-right wedge
+                    wedgePath.moveTo(squareRight, squareTop)
+                    wedgePath.lineTo(squareRight - halfSide, squareTop)
+                    wedgePath.lineTo(squareRight, squareTop + halfSide)
+                    wedgePath.close()
+                }
+                cornerX == squareLeft && cornerY == squareBottom -> {
+                    // Bottom-left wedge
+                    wedgePath.moveTo(squareLeft, squareBottom)
+                    wedgePath.lineTo(squareLeft + halfSide, squareBottom)
+                    wedgePath.lineTo(squareLeft, squareBottom - halfSide)
+                    wedgePath.close()
+                }
+                cornerX == squareRight && cornerY == squareBottom -> {
+                    // Bottom-right wedge
+                    wedgePath.moveTo(squareRight, squareBottom)
+                    wedgePath.lineTo(squareRight - halfSide, squareBottom)
+                    wedgePath.lineTo(squareRight, squareBottom - halfSide)
+                    wedgePath.close()
+                }
             }
             
+            // Clip the wedge with the circle boundary
+            val circlePath = Path()
+            circlePath.addCircle(centerX, centerY, circleRadius, Path.Direction.CW)
+            
+            // Create intersection path
+            val intersectionPath = Path()
+            intersectionPath.op(wedgePath, circlePath, Path.Op.INTERSECT)
+            
+            // Draw wedge background with highlighting
             val paint = Paint(paintRing).apply {
                 color = getHighlightColor(counters[buttonKey] ?: 0)
+                style = Paint.Style.FILL
+            }
+            canvas.drawPath(intersectionPath, paint)
+            
+            // Draw wedge border
+            val borderPaint = Paint(paintBorder).apply {
+                style = Paint.Style.STROKE
+            }
+            canvas.drawPath(intersectionPath, borderPaint)
+            
+            // Calculate text position (center of the wedge)
+            val textX = when {
+                cornerX == squareLeft -> squareLeft + halfSide / 2
+                else -> squareRight - halfSide / 2
+            }
+            val textY = when {
+                cornerY == squareTop -> squareTop + halfSide / 2
+                else -> squareBottom - halfSide / 2
             }
             
-            // Draw button background
-            canvas.drawRect(
-                x - buttonSize/2, y - buttonSize/2,
-                x + buttonSize/2, y + buttonSize/2,
-                paint
-            )
-            
-            // Draw button border
-            canvas.drawRect(
-                x - buttonSize/2, y - buttonSize/2,
-                x + buttonSize/2, y + buttonSize/2,
-                paintBorder
-            )
-            
-            // Draw button text
+            // Draw text with appropriate color
             val textColor = when (text) {
                 "✔" -> colorConfirm
                 "X" -> colorCancel
@@ -464,9 +530,9 @@ class AACKeyboardView @JvmOverloads constructor(
             
             val textPaint = Paint(paintText).apply { 
                 color = textColor 
-                textSize = paintText.textSize * 0.8f
+                textSize = paintText.textSize * 0.7f
             }
-            canvas.drawText(text, x, y + textPaint.textSize / 3, textPaint)
+            canvas.drawText(text, textX, textY + textPaint.textSize / 3, textPaint)
         }
     }
 
