@@ -28,10 +28,10 @@ class AACKeyboardView @JvmOverloads constructor(
         private val LEFT = listOf("c", "w", "m", "g", "y", "p", "f")
         private val BOTTOM = listOf("j", "b", "q", "k", "v", "z", "x")
         private val NUMBERS = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
-        
+
         private const val SELECTION_THRESHOLD = 4
         private const val MAX_DISPLAY_CHARS = 7
-        
+
         private val STATES = listOf("MAIN", "RIGHT", "TOP", "LEFT", "BOTTOM", "NUM")
     }
 
@@ -58,7 +58,7 @@ class AACKeyboardView @JvmOverloads constructor(
     private var canvasHeight = 500f
     private var ringSize = 400f
     private var innerRadius = 60f
-    
+
     // Square boundary for Google Glass rectangular screen
     private var squareSize = 0f
     private var squareLeft = 0f
@@ -73,7 +73,7 @@ class AACKeyboardView @JvmOverloads constructor(
     // Text-to-Speech
     private var tts: TextToSpeech? = null
 
-    // Sector mappings matching Python exactly - 修复映射问题
+    // Sector mappings matching Python exactly
     private val sectorMappings = mapOf(
         "MAIN" to mapOf(
             "TOP" to listOf(3, 4, 5, 6, 7),
@@ -92,7 +92,20 @@ class AACKeyboardView @JvmOverloads constructor(
             "8" to listOf(15, 16),
             "9" to listOf(17, 18, 19),
             "0" to listOf(20)
-        )
+        ),
+        // Individual character mappings for secondary states
+        "a" to mapOf("0" to listOf(1, 2, 3, 4)),
+        "e" to mapOf("0" to listOf(5, 6, 7, 8)),
+        "i" to mapOf("0" to listOf(9, 10, 11, 12)),
+        "o" to mapOf("0" to listOf(13, 14, 15, 16)),
+        "u" to mapOf("0" to listOf(17, 18, 19, 20)),
+        "s" to mapOf("0" to listOf(1, 2, 3)),
+        "t" to mapOf("0" to listOf(4, 5, 6)),
+        "n" to mapOf("0" to listOf(7, 8, 9)),
+        "r" to mapOf("0" to listOf(10, 11)),
+        "d" to mapOf("0" to listOf(12, 13, 14, 15)),
+        "l" to mapOf("0" to listOf(16, 17)),
+        "h" to mapOf("0" to listOf(18, 19, 20))
     )
 
     // Counter system matching Python exactly
@@ -107,7 +120,7 @@ class AACKeyboardView @JvmOverloads constructor(
         put("CONFIRM", 0)
         put("CENTER", 0)
     }
-    
+
     private val secondaryCounters = mutableMapOf<String, Int>()
 
     // Character positions storage
@@ -126,22 +139,22 @@ class AACKeyboardView @JvmOverloads constructor(
 
     private fun initializePaints() {
         paintBackground.color = colorBackground
-        
+
         paintBorder.apply {
             color = colorBorder
             style = Paint.Style.STROKE
             strokeWidth = 6f
         }
-        
+
         paintRing.color = colorRing
-        
+
         paintText.apply {
             color = colorText
             textSize = 32f
             textAlign = Paint.Align.CENTER
             typeface = Typeface.MONOSPACE
         }
-        
+
         paintHighlight.color = colorBorder
     }
 
@@ -153,13 +166,13 @@ class AACKeyboardView @JvmOverloads constructor(
             "LEFT" to LEFT,
             "BOTTOM" to BOTTOM
         )
-        
+
         sections.forEach { (section, chars) ->
             chars.forEachIndexed { i, _ ->
                 secondaryCounters["${section}_$i"] = 0
             }
         }
-        
+
         // Initialize number counters
         NUMBERS.forEach { num ->
             secondaryCounters["NUM_$num"] = 0
@@ -185,26 +198,26 @@ class AACKeyboardView @JvmOverloads constructor(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        
+
         // Calculate square boundary for rectangular Google Glass screen
         squareSize = minOf(w, h).toFloat()
         centerX = w / 2f
         centerY = h / 2f
-        
+
         // Define square boundaries
         squareLeft = centerX - squareSize / 2
         squareTop = centerY - squareSize / 2
         squareRight = centerX + squareSize / 2
         squareBottom = centerY + squareSize / 2
-        
+
         // Scale ring and inner circle based on square size
         val scale = squareSize / canvasWidth
         ringSize = 400f * scale
         innerRadius = 60f * scale
-        
+
         // Update text size based on scale
         paintText.textSize = 32f * scale
-        
+
         computeCharacterPositions()
     }
 
@@ -213,8 +226,9 @@ class AACKeyboardView @JvmOverloads constructor(
         arcAngles.clear()
 
         // MAIN VIEW: Radial arrangement within sectors (exactly matching Python)
+        // MAIN VIEW: Radial arrangement within sectors (exactly matching Python)
         val sectorInfo = mapOf(
-            "TOP" to Triple(90f, ringSize * 0.25f, TOP),
+            "TOP" to Triple(90f, ringSize * 0.25f, TOP),      // TOP angle should be 90 degrees
             "RIGHT" to Triple(0f, ringSize * 0.25f, RIGHT),
             "BOTTOM" to Triple(270f, ringSize * 0.25f, BOTTOM),
             "LEFT" to Triple(180f, ringSize * 0.25f, LEFT)
@@ -222,11 +236,11 @@ class AACKeyboardView @JvmOverloads constructor(
 
         sectorInfo.forEach { (section, info) ->
             val (centerAngle, centerRadius, letters) = info
-            
+
             letters.forEachIndexed { i, char ->
                 val baseRadius = ringSize * 0.075f
                 val angleSpread = 50f
-                
+
                 val angles = if (letters.size == 1) {
                     listOf(centerAngle)
                 } else {
@@ -235,33 +249,31 @@ class AACKeyboardView @JvmOverloads constructor(
                     val charAngle = startAngle + i * angleSpread / (letters.size - 1)
                     listOf(charAngle)
                 }
-                
+
                 val charAngle = Math.toRadians(angles[0].toDouble())
                 val radiusVariation = baseRadius + (i % 2) * ringSize * 0.0125f
                 val totalRadius = centerRadius + radiusVariation * 0.7f
-                
+
                 val x = centerX + totalRadius * cos(charAngle).toFloat()
-                val y = centerY - totalRadius * sin(charAngle).toFloat()
-                
+                val y = centerY - totalRadius * sin(charAngle).toFloat()  // Make sure this is correct
+
                 characterPositions[Pair(char, "MAIN")] = Pair(x, y)
             }
         }
 
-        // SECONDARY VIEW: Full circle with equal segments - 修复角度计算
+        // SECONDARY VIEW: Full circle with equal segments (exactly matching Python)
         val secondaryRadius = ringSize * 0.3f
         val sections = mapOf("RIGHT" to RIGHT, "TOP" to TOP, "LEFT" to LEFT, "BOTTOM" to BOTTOM)
-        
+
         sections.forEach { (section, chars) ->
             chars.forEachIndexed { i, char ->
-                // 修复：确保角度从0度开始，顺时针分布
                 val startAngle = 360f * i / chars.size
                 val endAngle = 360f * (i + 1) / chars.size
                 val textAngle = Math.toRadians(((startAngle + endAngle) / 2).toDouble())
-                
-                // Store angles for arc drawing - 确保sweepAngle为正值
-                val sweepAngle = endAngle - startAngle
-                arcAngles[Pair(char, section)] = Pair(startAngle, sweepAngle)
-                
+
+                // Store angles for arc drawing
+                arcAngles[Pair(char, section)] = Pair(startAngle, endAngle - startAngle)
+
                 // Position text at 90% of radius
                 val x = centerX + (secondaryRadius * 0.9f) * cos(textAngle).toFloat()
                 val y = centerY - (secondaryRadius * 0.9f) * sin(textAngle).toFloat()
@@ -274,11 +286,10 @@ class AACKeyboardView @JvmOverloads constructor(
             val startAngle = 360f * i / NUMBERS.size
             val endAngle = 360f * (i + 1) / NUMBERS.size
             val textAngle = Math.toRadians(((startAngle + endAngle) / 2).toDouble())
-            
+
             // Store angles for arc drawing
-            val sweepAngle = endAngle - startAngle
-            arcAngles[Pair(num, "NUM")] = Pair(startAngle, sweepAngle)
-            
+            arcAngles[Pair(num, "NUM")] = Pair(startAngle, endAngle - startAngle)
+
             // Position text at 90% of radius
             val x = centerX + (secondaryRadius * 0.9f) * cos(textAngle).toFloat()
             val y = centerY - (secondaryRadius * 0.9f) * sin(textAngle).toFloat()
@@ -288,13 +299,13 @@ class AACKeyboardView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        
+
         // Clear background
         canvas.drawColor(colorBackground)
-        
+
         // Draw square boundary for Google Glass rectangular screen
         drawSquareBoundary(canvas)
-        
+
         // Draw in correct order - matching Python exactly
         drawMainRing(canvas)
         drawCurrentStateContent(canvas)
@@ -308,7 +319,7 @@ class AACKeyboardView @JvmOverloads constructor(
             strokeWidth = 4f
             alpha = 128 // Semi-transparent to show boundary without being intrusive
         }
-        
+
         canvas.drawRect(squareLeft, squareTop, squareRight, squareBottom, boundaryPaint)
     }
 
@@ -318,7 +329,7 @@ class AACKeyboardView @JvmOverloads constructor(
             centerX - ringSize / 2, centerY - ringSize / 2,
             centerX + ringSize / 2, centerY + ringSize / 2
         )
-        
+
         // Background circle
         val bgPaint = Paint(paintRing).apply { color = colorBackground }
         canvas.drawOval(rect, bgPaint)
@@ -338,33 +349,45 @@ class AACKeyboardView @JvmOverloads constructor(
             centerX - ringSize / 2, centerY - ringSize / 2,
             centerX + ringSize / 2, centerY + ringSize / 2
         )
-        
+
         // Draw four main sections with highlighting - EXACTLY like Python
         val sections = listOf("TOP", "RIGHT", "BOTTOM", "LEFT")
         val startAngles = listOf(45f, 315f, 225f, 135f)
-        
+
         sections.forEachIndexed { index, section ->
             val paint = Paint(paintRing).apply {
                 color = getHighlightColor(counters[section] ?: 0)
             }
-            
+
             // Draw filled arc
             canvas.drawArc(rect, startAngles[index], 90f, true, paint)
             // Draw border
             canvas.drawArc(rect, startAngles[index], 90f, true, paintBorder)
         }
-        
+
+        // Draw character labels - positioned exactly like Python
         // Draw character labels - positioned exactly like Python
         val letterSections = mapOf("TOP" to TOP, "RIGHT" to RIGHT, "BOTTOM" to BOTTOM, "LEFT" to LEFT)
-        
+
         letterSections.forEach { (section, letters) ->
             letters.forEach { char ->
                 characterPositions[Pair(char, "MAIN")]?.let { (x, y) ->
-                    val textPaint = Paint(paintText).apply { 
+                    val textPaint = Paint(paintText).apply {
                         textSize = paintText.textSize * 0.6f  // Small text like Python
+                        color = colorText  // Make sure color is set
+                        textAlign = Paint.Align.CENTER
+                        isAntiAlias = true
                     }
-                    canvas.drawText(char, x, y + textPaint.textSize / 3, textPaint)
+                    // Add some debugging - make sure coordinates are valid
+                    if (x.isFinite() && y.isFinite()) {
+                        canvas.drawText(char.uppercase(), x, y + textPaint.textSize / 3, textPaint)
+                    }
                 }
+            }
+        }
+        TOP.forEach { char ->
+            characterPositions[Pair(char, "MAIN")]?.let { (x, y) ->
+                println("TOP char $char at position ($x, $y)")
             }
         }
     }
@@ -374,7 +397,7 @@ class AACKeyboardView @JvmOverloads constructor(
             centerX - ringSize / 2, centerY - ringSize / 2,
             centerX + ringSize / 2, centerY + ringSize / 2
         )
-        
+
         val letters = when (currentState) {
             "RIGHT" -> RIGHT
             "TOP" -> TOP
@@ -382,29 +405,32 @@ class AACKeyboardView @JvmOverloads constructor(
             "BOTTOM" -> BOTTOM
             else -> emptyList()
         }
-        
-        println("[DEBUG] Drawing secondary view for state: $currentState, letters: $letters")
-        
+
+        // FIRST PHASE: Draw all the arcs (background)
         letters.forEachIndexed { i, char ->
             arcAngles[Pair(char, currentState)]?.let { (startAngle, sweepAngle) ->
                 val counterKey = "${currentState}_$i"
-                val counter = secondaryCounters[counterKey] ?: 0
-                
-                println("[DEBUG] Drawing char: $char, startAngle: $startAngle, sweepAngle: $sweepAngle, counter: $counter")
-                
                 val paint = Paint(paintRing).apply {
-                    color = getHighlightColor(counter)
+                    color = getHighlightColor(secondaryCounters[counterKey] ?: 0)
                 }
-                
-                // 修复：确保绘制所有扇形，包括左上角
+
+                // Draw filled arc
                 canvas.drawArc(rect, startAngle, sweepAngle, true, paint)
                 // Draw border
-                canvas.drawArc(rect, startAngle, sweepAngle, false, paintBorder)
-                
-                // Draw character
-                characterPositions[Pair(char, currentState)]?.let { (x, y) ->
-                    canvas.drawText(char, x, y + paintText.textSize / 3, paintText)
+                canvas.drawArc(rect, startAngle, sweepAngle, true, paintBorder)
+            }
+        }
+
+        // SECOND PHASE: Draw all the text (foreground)
+        letters.forEachIndexed { i, char ->
+            characterPositions[Pair(char, currentState)]?.let { (x, y) ->
+                val textPaint = Paint(paintText).apply {
+                    color = colorText
+                    textAlign = Paint.Align.CENTER
+                    isAntiAlias = true
+                    textSize = paintText.textSize  // Don't make it smaller
                 }
+                canvas.drawText(char, x, y + textPaint.textSize / 3, textPaint)
             }
         }
     }
@@ -414,23 +440,32 @@ class AACKeyboardView @JvmOverloads constructor(
             centerX - ringSize / 2, centerY - ringSize / 2,
             centerX + ringSize / 2, centerY + ringSize / 2
         )
-        
+
+        // FIRST: Draw all the arcs (background)
         NUMBERS.forEach { num ->
             arcAngles[Pair(num, "NUM")]?.let { (startAngle, sweepAngle) ->
                 val counterKey = "NUM_$num"
                 val paint = Paint(paintRing).apply {
                     color = getHighlightColor(secondaryCounters[counterKey] ?: 0)
                 }
-                
+
                 // Draw filled arc
                 canvas.drawArc(rect, startAngle, sweepAngle, true, paint)
                 // Draw border
-                canvas.drawArc(rect, startAngle, sweepAngle, false, paintBorder)
-                
-                // Draw number
-                characterPositions[Pair(num, "NUM")]?.let { (x, y) ->
-                    canvas.drawText(num, x, y + paintText.textSize / 3, paintText)
+                canvas.drawArc(rect, startAngle, sweepAngle, true, paintBorder)
+            }
+        }
+
+        // SECOND: Draw all the text (foreground)
+        NUMBERS.forEach { num ->
+            characterPositions[Pair(num, "NUM")]?.let { (x, y) ->
+                val textPaint = Paint(paintText).apply {
+                    color = colorText
+                    textAlign = Paint.Align.CENTER
+                    isAntiAlias = true
+                    textSize = paintText.textSize  // Don't make it smaller
                 }
+                canvas.drawText(num, x, y + textPaint.textSize / 3, textPaint)
             }
         }
     }
@@ -439,21 +474,21 @@ class AACKeyboardView @JvmOverloads constructor(
         // Calculate wedge dimensions - each button extends exactly half the square side length
         val halfSide = squareSize / 4f  // Half of half the square (quarter of total)
         val circleRadius = ringSize / 2f
-        
+
         // Button data: text, position, key
         val buttons = listOf(
             Triple("NUM", Pair(squareLeft, squareTop), "NUM"),           // Top-left
-            Triple("⟲", Pair(squareRight, squareTop), "RETURN"),        // Top-right  
+            Triple("⟲", Pair(squareRight, squareTop), "RETURN"),        // Top-right
             Triple("X", Pair(squareLeft, squareBottom), "DELETE"),       // Bottom-left
             Triple("✔", Pair(squareRight, squareBottom), "CONFIRM")     // Bottom-right
         )
-        
+
         buttons.forEach { (text, pos, buttonKey) ->
             val (cornerX, cornerY) = pos
-            
+
             // Create wedge path (intersection of circle and square corner)
             val wedgePath = Path()
-            
+
             // Determine wedge boundaries based on corner position
             when {
                 cornerX == squareLeft && cornerY == squareTop -> {
@@ -485,48 +520,50 @@ class AACKeyboardView @JvmOverloads constructor(
                     wedgePath.close()
                 }
             }
-            
+
             // Clip the wedge with the circle boundary
             val circlePath = Path()
             circlePath.addCircle(centerX, centerY, circleRadius, Path.Direction.CW)
-            
+
             // Create intersection path
             val intersectionPath = Path()
             intersectionPath.op(wedgePath, circlePath, Path.Op.INTERSECT)
-            
+
             // Draw wedge background with highlighting
             val paint = Paint(paintRing).apply {
                 color = getHighlightColor(counters[buttonKey] ?: 0)
                 style = Paint.Style.FILL
             }
             canvas.drawPath(intersectionPath, paint)
-            
+
             // Draw wedge border
             val borderPaint = Paint(paintBorder).apply {
                 style = Paint.Style.STROKE
             }
             canvas.drawPath(intersectionPath, borderPaint)
-            
+
             // Calculate text position (center of the wedge)
             val textX = when {
-                cornerX == squareLeft -> squareLeft + halfSide / 2
-                else -> squareRight - halfSide / 2
+                cornerX == squareLeft -> squareLeft + halfSide * 0.5f  // Move text more toward center
+                else -> squareRight - halfSide * 0.5f
             }
             val textY = when {
-                cornerY == squareTop -> squareTop + halfSide / 2
-                else -> squareBottom - halfSide / 2
+                cornerY == squareTop -> squareTop + halfSide * 0.5f    // Move text more toward center
+                else -> squareBottom - halfSide * 0.5f
             }
-            
+
             // Draw text with appropriate color
             val textColor = when (text) {
                 "✔" -> colorConfirm
                 "X" -> colorCancel
                 else -> colorText
             }
-            
-            val textPaint = Paint(paintText).apply { 
-                color = textColor 
-                textSize = paintText.textSize * 0.7f
+
+            val textPaint = Paint(paintText).apply {
+                color = textColor
+                textSize = paintText.textSize * 0.8f  // Increase text size slightly
+                textAlign = Paint.Align.CENTER       // Ensure center alignment
+                typeface = Typeface.DEFAULT_BOLD     // Make text bolder for visibility
             }
             canvas.drawText(text, textX, textY + textPaint.textSize / 3, textPaint)
         }
@@ -537,10 +574,10 @@ class AACKeyboardView @JvmOverloads constructor(
         val centerPaint = Paint(paintRing).apply {
             color = getHighlightColor(counters["CENTER"] ?: 0)
         }
-        
+
         canvas.drawCircle(centerX, centerY, innerRadius, centerPaint)
         canvas.drawCircle(centerX, centerY, innerRadius, paintBorder)
-        
+
         // Draw center text
         val displayText = getCenterCircleText()
         canvas.drawText(displayText, centerX, centerY + paintText.textSize / 3, paintText)
@@ -572,14 +609,12 @@ class AACKeyboardView @JvmOverloads constructor(
     private fun processCommand(command: String) {
         try {
             val commandNum = command.toIntOrNull() ?: return
-            
-            println("[DEBUG] Processing command: $commandNum in state: $currentState")
-            
+
             when (commandNum) {
                 in 1..20 -> processSectorInput(commandNum)
                 in 21..25 -> processButtonInput(commandNum)
             }
-            
+
             invalidate() // Trigger redraw
         } catch (e: Exception) {
             e.printStackTrace()
@@ -587,26 +622,22 @@ class AACKeyboardView @JvmOverloads constructor(
     }
 
     private fun processSectorInput(sector: Int) {
-        println("[DEBUG] Processing sector input: $sector in state: $currentState")
-        
         when (currentState) {
             "MAIN" -> {
                 sectorMappings["MAIN"]?.forEach { (section, sectors) ->
                     if (sector in sectors) {
                         counters[section] = (counters[section] ?: 0) + 1
-                        println("[DEBUG] MAIN state - section: $section, counter: ${counters[section]}")
                         if (counters[section]!! >= SELECTION_THRESHOLD) {
                             counters[section] = 0
                             resetAllCounters()
                             currentState = section
-                            println("[DEBUG] Switching to state: $currentState")
                         }
                         return
                     }
                 }
                 dimCurrentSelection()
             }
-            
+
             in listOf("RIGHT", "TOP", "LEFT", "BOTTOM") -> {
                 val section = currentState
                 val chars = when (section) {
@@ -616,35 +647,29 @@ class AACKeyboardView @JvmOverloads constructor(
                     "BOTTOM" -> BOTTOM
                     else -> emptyList()
                 }
-                
-                println("[DEBUG] Secondary state processing - section: $section, chars: $chars")
-                
+
                 chars.forEachIndexed { i, char ->
                     val counterKey = "${section}_$i"
-                    
-                    // 修复：简化secondary状态下的sector处理逻辑
-                    // 每个字符对应特定的sector范围
-                    val charSectorStart = i * (20 / chars.size) + 1
-                    val charSectorEnd = (i + 1) * (20 / chars.size)
-                    
-                    if (sector in charSectorStart..charSectorEnd) {
-                        secondaryCounters[counterKey] = (secondaryCounters[counterKey] ?: 0) + 1
-                        println("[DEBUG] Character: $char, counter: ${secondaryCounters[counterKey]}")
-                        if (secondaryCounters[counterKey]!! >= SELECTION_THRESHOLD) {
-                            addCharacter(char)
+
+                    // Check if this sector corresponds to this character
+                    sectorMappings[char]?.get("0")?.let { charSectors ->
+                        if (sector in charSectors) {
+                            secondaryCounters[counterKey] = (secondaryCounters[counterKey] ?: 0) + 1
+                            if (secondaryCounters[counterKey]!! >= SELECTION_THRESHOLD) {
+                                addCharacter(char)
+                            }
+                            return
                         }
-                        return
                     }
                 }
                 dimCurrentSelection()
             }
-            
+
             "NUM" -> {
                 sectorMappings["NUM"]?.forEach { (number, sectors) ->
                     if (sector in sectors) {
                         val counterKey = "NUM_$number"
                         secondaryCounters[counterKey] = (secondaryCounters[counterKey] ?: 0) + 1
-                        println("[DEBUG] Number: $number, counter: ${secondaryCounters[counterKey]}")
                         if (secondaryCounters[counterKey]!! >= SELECTION_THRESHOLD) {
                             addNumber(number)
                         }
@@ -657,52 +682,45 @@ class AACKeyboardView @JvmOverloads constructor(
     }
 
     private fun processButtonInput(buttonCode: Int) {
-        println("[DEBUG] Processing button input: $buttonCode")
-        
         when (buttonCode) {
             21 -> { // NUM
                 counters["NUM"] = (counters["NUM"] ?: 0) + 1
-                println("[DEBUG] NUM button counter: ${counters["NUM"]}")
                 if (counters["NUM"]!! >= SELECTION_THRESHOLD) {
                     counters["NUM"] = 0
                     resetAllCounters()
                     currentState = "NUM"
-                    println("[DEBUG] Switched to NUM state")
                 }
             }
-            
+
             22 -> { // RETURN
                 counters["RETURN"] = (counters["RETURN"] ?: 0) + 1
-                println("[DEBUG] RETURN button counter: ${counters["RETURN"]}")
                 if (counters["RETURN"]!! >= SELECTION_THRESHOLD) {
                     counters["RETURN"] = 0
                     resetAllCounters()
                     currentState = "MAIN"
-                    println("[DEBUG] Returned to MAIN state")
                 }
             }
-            
+
             23 -> { // DELETE
-                if (currentState in listOf("TOP", "RIGHT", "BOTTOM", "LEFT")) return
-                
+                // Remove the early return line completely:
+                // if (currentState in listOf("TOP", "RIGHT", "BOTTOM", "LEFT")) return
+
                 counters["DELETE"] = (counters["DELETE"] ?: 0) + 1
-                println("[DEBUG] DELETE button counter: ${counters["DELETE"]}")
                 if (counters["DELETE"]!! >= SELECTION_THRESHOLD) {
                     counters["DELETE"] = 0
                     if (currentText.isNotEmpty()) {
                         currentText = currentText.dropLast(1)
-                        println("[DEBUG] Text after delete: '$currentText'")
                     } else {
                         tts("No")
                     }
                 }
             }
-            
+
             24 -> { // CONFIRM
-                if (currentState in listOf("TOP", "RIGHT", "BOTTOM", "LEFT")) return
-                
+                // Remove the early return line completely:
+                // if (currentState in listOf("TOP", "RIGHT", "BOTTOM", "LEFT")) return
+
                 counters["CONFIRM"] = (counters["CONFIRM"] ?: 0) + 1
-                println("[DEBUG] CONFIRM button counter: ${counters["CONFIRM"]}")
                 if (counters["CONFIRM"]!! >= SELECTION_THRESHOLD) {
                     counters["CONFIRM"] = 0
                     if (currentText.isNotEmpty()) {
@@ -712,10 +730,9 @@ class AACKeyboardView @JvmOverloads constructor(
                     }
                 }
             }
-            
+
             25 -> { // CENTER
                 counters["CENTER"] = (counters["CENTER"] ?: 0) + 1
-                println("[DEBUG] CENTER button counter: ${counters["CENTER"]}")
                 if (counters["CENTER"]!! >= SELECTION_THRESHOLD) {
                     counters["CENTER"] = 0
                     if (currentState == "NUM") {
@@ -749,7 +766,7 @@ class AACKeyboardView @JvmOverloads constructor(
                     counters[it] = maxOf(0, (counters[it] ?: 0) - 1)
                 }
             }
-            
+
             in listOf("TOP", "RIGHT", "BOTTOM", "LEFT") -> {
                 val section = currentState
                 val chars = when (section) {
@@ -759,7 +776,7 @@ class AACKeyboardView @JvmOverloads constructor(
                     "BOTTOM" -> BOTTOM
                     else -> emptyList()
                 }
-                
+
                 var maxCounter = 0
                 var maxKey: String? = null
                 chars.indices.forEach { i ->
@@ -774,7 +791,7 @@ class AACKeyboardView @JvmOverloads constructor(
                     secondaryCounters[it] = maxOf(0, (secondaryCounters[it] ?: 0) - 1)
                 }
             }
-            
+
             "NUM" -> {
                 var maxCounter = 0
                 var maxKey: String? = null
@@ -795,33 +812,28 @@ class AACKeyboardView @JvmOverloads constructor(
 
     private fun addCharacter(char: String) {
         currentText += char
-        println("[DEBUG] Added character: $char, current text: '$currentText'")
         resetAllCounters()
         currentState = "MAIN"
     }
 
     private fun addNumber(num: String) {
         currentText += num
-        println("[DEBUG] Added number: $num, current text: '$currentText'")
         resetAllCounters()
         // Stay in NUM state
     }
 
     private fun addSpace() {
         currentText += " "
-        println("[DEBUG] Added space, current text: '$currentText'")
         resetAllCounters()
     }
 
     private fun addDecimalPoint() {
         currentText += "."
-        println("[DEBUG] Added decimal point, current text: '$currentText'")
         resetAllCounters()
     }
 
     private fun confirmText() {
         if (currentText.isNotEmpty()) {
-            println("[DEBUG] Confirming text: '$currentText'")
             tts(currentText)
             currentText = ""
             resetAllCounters()
