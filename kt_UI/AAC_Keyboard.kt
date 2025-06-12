@@ -7,11 +7,6 @@ import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.util.AttributeSet
 import android.view.View
-import kotlinx.coroutines.*
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.net.ServerSocket
-import java.net.Socket
 import java.util.*
 import kotlin.math.*
 
@@ -648,21 +643,60 @@ class AACKeyboardView @JvmOverloads constructor(
                     else -> emptyList()
                 }
 
-                chars.forEachIndexed { i, char ->
-                    val counterKey = "${section}_$i"
-
-                    // Check if this sector corresponds to this character
-                    sectorMappings[char]?.get("0")?.let { charSectors ->
-                        if (sector in charSectors) {
-                            secondaryCounters[counterKey] = (secondaryCounters[counterKey] ?: 0) + 1
-                            if (secondaryCounters[counterKey]!! >= SELECTION_THRESHOLD) {
-                                addCharacter(char)
-                            }
-                            return
+                // Direct sector-to-character mapping for secondary views
+                val sectorFound = when (section) {
+                    "RIGHT" -> {
+                        when (sector) {
+                            in 1..4 -> { incrementCharacterCounter(section, 0, "a"); true }
+                            in 5..8 -> { incrementCharacterCounter(section, 1, "e"); true }
+                            in 9..12 -> { incrementCharacterCounter(section, 2, "i"); true }
+                            in 13..16 -> { incrementCharacterCounter(section, 3, "o"); true }
+                            in 17..20 -> { incrementCharacterCounter(section, 4, "u"); true }
+                            else -> false
                         }
                     }
+                    "TOP" -> {
+                        when (sector) {
+                            in 1..3 -> { incrementCharacterCounter(section, 0, "s"); true }
+                            in 4..6 -> { incrementCharacterCounter(section, 1, "t"); true }
+                            in 7..9 -> { incrementCharacterCounter(section, 2, "n"); true }
+                            in 10..11 -> { incrementCharacterCounter(section, 3, "r"); true }
+                            in 12..15 -> { incrementCharacterCounter(section, 4, "d"); true }
+                            in 16..17 -> { incrementCharacterCounter(section, 5, "l"); true }
+                            in 18..20 -> { incrementCharacterCounter(section, 6, "h"); true }
+                            else -> false
+                        }
+                    }
+                    "LEFT" -> {
+                        when (sector) {
+                            in 1..3 -> { incrementCharacterCounter(section, 0, "c"); true }
+                            in 4..6 -> { incrementCharacterCounter(section, 1, "w"); true }
+                            in 7..9 -> { incrementCharacterCounter(section, 2, "m"); true }
+                            in 10..12 -> { incrementCharacterCounter(section, 3, "g"); true }
+                            in 13..15 -> { incrementCharacterCounter(section, 4, "y"); true }
+                            in 16..18 -> { incrementCharacterCounter(section, 5, "p"); true }
+                            in 19..20 -> { incrementCharacterCounter(section, 6, "f"); true }
+                            else -> false
+                        }
+                    }
+                    "BOTTOM" -> {
+                        when (sector) {
+                            in 1..3 -> { incrementCharacterCounter(section, 0, "j"); true }
+                            in 4..6 -> { incrementCharacterCounter(section, 1, "b"); true }
+                            in 7..9 -> { incrementCharacterCounter(section, 2, "q"); true }
+                            in 10..12 -> { incrementCharacterCounter(section, 3, "k"); true }
+                            in 13..15 -> { incrementCharacterCounter(section, 4, "v"); true }
+                            in 16..18 -> { incrementCharacterCounter(section, 5, "z"); true }
+                            in 19..20 -> { incrementCharacterCounter(section, 6, "x"); true }
+                            else -> false
+                        }
+                    }
+                    else -> false
                 }
-                dimCurrentSelection()
+
+                if (!sectorFound) {
+                    dimCurrentSelection()
+                }
             }
 
             "NUM" -> {
@@ -742,6 +776,14 @@ class AACKeyboardView @JvmOverloads constructor(
                     }
                 }
             }
+        }
+    }
+
+    private fun incrementCharacterCounter(section: String, charIndex: Int, char: String) {
+        val counterKey = "${section}_$charIndex"
+        secondaryCounters[counterKey] = (secondaryCounters[counterKey] ?: 0) + 1
+        if (secondaryCounters[counterKey]!! >= SELECTION_THRESHOLD) {
+            addCharacter(char)
         }
     }
 
