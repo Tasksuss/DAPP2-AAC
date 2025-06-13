@@ -223,9 +223,9 @@ class AACKeyboardView @JvmOverloads constructor(
         // MAIN VIEW: Radial arrangement within sectors (exactly matching Python)
         // MAIN VIEW: Radial arrangement within sectors (exactly matching Python)
         val sectorInfo = mapOf(
-            "TOP" to Triple(90f, ringSize * 0.25f, TOP),      // TOP angle should be 90 degrees
+            "TOP" to Triple(270f, ringSize * 0.25f, TOP),      // TOP angle should be 90 degrees
             "RIGHT" to Triple(0f, ringSize * 0.25f, RIGHT),
-            "BOTTOM" to Triple(270f, ringSize * 0.25f, BOTTOM),
+            "BOTTOM" to Triple(90f, ringSize * 0.25f, BOTTOM),
             "LEFT" to Triple(180f, ringSize * 0.25f, LEFT)
         )
 
@@ -287,7 +287,7 @@ class AACKeyboardView @JvmOverloads constructor(
 
             // Position text at 90% of radius
             val x = centerX + (secondaryRadius * 0.9f) * cos(textAngle).toFloat()
-            val y = centerY - (secondaryRadius * 0.9f) * sin(textAngle).toFloat()
+            val y = centerY + (secondaryRadius * 0.9f) * sin(textAngle).toFloat()
             characterPositions[Pair(num, "NUM")] = Pair(x, y)
         }
     }
@@ -647,47 +647,47 @@ class AACKeyboardView @JvmOverloads constructor(
                 val sectorFound = when (section) {
                     "RIGHT" -> {
                         when (sector) {
-                            in 1..4 -> { incrementCharacterCounter(section, 0, "a"); true }
-                            in 5..8 -> { incrementCharacterCounter(section, 1, "e"); true }
+                            in 1..4 -> { incrementCharacterCounter(section, 0, "u"); true }
+                            in 5..8 -> { incrementCharacterCounter(section, 1, "o"); true }
                             in 9..12 -> { incrementCharacterCounter(section, 2, "i"); true }
-                            in 13..16 -> { incrementCharacterCounter(section, 3, "o"); true }
-                            in 17..20 -> { incrementCharacterCounter(section, 4, "u"); true }
+                            in 13..16 -> { incrementCharacterCounter(section, 3, "e"); true }
+                            in 17..20 -> { incrementCharacterCounter(section, 4, "a"); true }
                             else -> false
                         }
                     }
                     "TOP" -> {
                         when (sector) {
-                            in 1..3 -> { incrementCharacterCounter(section, 0, "s"); true }
-                            in 4..6 -> { incrementCharacterCounter(section, 1, "t"); true }
-                            in 7..9 -> { incrementCharacterCounter(section, 2, "n"); true }
+                            in 1..3 -> { incrementCharacterCounter(section, 0, "h"); true }
+                            in 4..6 -> { incrementCharacterCounter(section, 1, "l"); true }
+                            in 7..9 -> { incrementCharacterCounter(section, 2, "d"); true }
                             in 10..11 -> { incrementCharacterCounter(section, 3, "r"); true }
-                            in 12..15 -> { incrementCharacterCounter(section, 4, "d"); true }
-                            in 16..17 -> { incrementCharacterCounter(section, 5, "l"); true }
-                            in 18..20 -> { incrementCharacterCounter(section, 6, "h"); true }
+                            in 12..15 -> { incrementCharacterCounter(section, 4, "n"); true }
+                            in 16..17 -> { incrementCharacterCounter(section, 5, "t"); true }
+                            in 18..20 -> { incrementCharacterCounter(section, 6, "s"); true }
                             else -> false
                         }
                     }
                     "LEFT" -> {
                         when (sector) {
-                            in 1..3 -> { incrementCharacterCounter(section, 0, "c"); true }
-                            in 4..6 -> { incrementCharacterCounter(section, 1, "w"); true }
-                            in 7..9 -> { incrementCharacterCounter(section, 2, "m"); true }
+                            in 1..3 -> { incrementCharacterCounter(section, 0, "f"); true }
+                            in 4..6 -> { incrementCharacterCounter(section, 1, "p"); true }
+                            in 7..9 -> { incrementCharacterCounter(section, 2, "y"); true }
                             in 10..12 -> { incrementCharacterCounter(section, 3, "g"); true }
-                            in 13..15 -> { incrementCharacterCounter(section, 4, "y"); true }
-                            in 16..18 -> { incrementCharacterCounter(section, 5, "p"); true }
-                            in 19..20 -> { incrementCharacterCounter(section, 6, "f"); true }
+                            in 13..15 -> { incrementCharacterCounter(section, 4, "m"); true }
+                            in 16..18 -> { incrementCharacterCounter(section, 5, "w"); true }
+                            in 19..20 -> { incrementCharacterCounter(section, 6, "c"); true }
                             else -> false
                         }
                     }
                     "BOTTOM" -> {
                         when (sector) {
-                            in 1..3 -> { incrementCharacterCounter(section, 0, "j"); true }
-                            in 4..6 -> { incrementCharacterCounter(section, 1, "b"); true }
-                            in 7..9 -> { incrementCharacterCounter(section, 2, "q"); true }
+                            in 1..3 -> { incrementCharacterCounter(section, 0, "x"); true }
+                            in 4..6 -> { incrementCharacterCounter(section, 1, "z"); true }
+                            in 7..9 -> { incrementCharacterCounter(section, 2, "v"); true }
                             in 10..12 -> { incrementCharacterCounter(section, 3, "k"); true }
-                            in 13..15 -> { incrementCharacterCounter(section, 4, "v"); true }
-                            in 16..18 -> { incrementCharacterCounter(section, 5, "z"); true }
-                            in 19..20 -> { incrementCharacterCounter(section, 6, "x"); true }
+                            in 13..15 -> { incrementCharacterCounter(section, 4, "q"); true }
+                            in 16..18 -> { incrementCharacterCounter(section, 5, "b"); true }
+                            in 19..20 -> { incrementCharacterCounter(section, 6, "j"); true }
                             else -> false
                         }
                     }
