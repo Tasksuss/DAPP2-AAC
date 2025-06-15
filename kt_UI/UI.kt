@@ -17,7 +17,7 @@ class AACKeyboardView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     companion object {
-        // Character arrays matching Python exactly
+        // set character arrays
         private val RIGHT = listOf("a", "e", "i", "o", "u")
         private val TOP = listOf("s", "t", "n", "r", "d", "l", "h")
         private val LEFT = listOf("c", "w", "m", "g", "y", "p", "f")
@@ -25,12 +25,12 @@ class AACKeyboardView @JvmOverloads constructor(
         private val NUMBERS = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
 
         private const val SELECTION_THRESHOLD = 4
-        private const val MAX_DISPLAY_CHARS = 7
+        private const val MAX_DISPLAY_CHARS = 6
 
         private val STATES = listOf("MAIN", "RIGHT", "TOP", "LEFT", "BOTTOM", "NUM")
     }
 
-    // Colors matching Python exactly
+    // setting Colors
     private val colorBackground = Color.parseColor("#f8fafc")
     private val colorBorder = Color.parseColor("#3b82f6")
     private val colorText = Color.parseColor("#1e293b")
@@ -64,6 +64,13 @@ class AACKeyboardView @JvmOverloads constructor(
     // State variables
     private var currentState = "MAIN"
     private var currentText = ""
+    // Add these variables after the existing state variables
+
+    // Light point display variables
+    private var lightPointPosition: String? = null
+    private var lightPointStartTime: Long = 0
+    private val LIGHT_POINT_DURATION = 3000L // 3 seconds in milliseconds
+    private val lightPointPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     // Text-to-Speech
     private var tts: TextToSpeech? = null
@@ -151,6 +158,10 @@ class AACKeyboardView @JvmOverloads constructor(
         }
 
         paintHighlight.color = colorBorder
+        lightPointPaint.apply {
+            color = Color.YELLOW  // or any bright color you prefer
+            style = Paint.Style.FILL
+        }
     }
 
     private fun initializeCounters() {
@@ -306,6 +317,28 @@ class AACKeyboardView @JvmOverloads constructor(
         drawCurrentStateContent(canvas)
         drawWedgeCornerButtons(canvas)
         drawCenterCircle(canvas)
+        // Add light point drawing
+        drawLightPoint(canvas)
+    }
+
+    private fun drawLightPoint(canvas: Canvas) {
+        lightPointPosition?.let { position ->
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lightPointStartTime < LIGHT_POINT_DURATION) {
+                val lightRadius = ringSize * 0.05f // Adjust size as needed
+
+                val (x, y) = when (position) {
+                    "center" -> Pair(centerX, centerY)
+                    "top_mid" -> Pair(centerX, centerY - ringSize * 0.63f)
+                    "bottom_mid" -> Pair(centerX, centerY + ringSize * 0.63f)
+                    "left_mid" -> Pair(centerX - ringSize * 0.63f, centerY)
+                    "right_mid" -> Pair(centerX + ringSize * 0.63f, centerY)
+                    else -> Pair(centerX, centerY)
+                }
+
+                canvas.drawCircle(x, y, lightRadius, lightPointPaint)
+            }
+        }
     }
 
     private fun drawSquareBoundary(canvas: Canvas) {
@@ -565,7 +598,7 @@ class AACKeyboardView @JvmOverloads constructor(
     }
 
     private fun drawCenterCircle(canvas: Canvas) {
-        // Draw center circle - EXACTLY like Python
+        // Draw center circle
         val centerPaint = Paint(paintRing).apply {
             color = getHighlightColor(counters["CENTER"] ?: 0)
         }
@@ -603,17 +636,37 @@ class AACKeyboardView @JvmOverloads constructor(
 
     private fun processCommand(command: String) {
         try {
-            val commandNum = command.toIntOrNull() ?: return
-
-            when (commandNum) {
-                in 1..20 -> processSectorInput(commandNum)
-                in 21..25 -> processButtonInput(commandNum)
+            // Add string command handling before number parsing
+            when (command.lowercase()) {
+                "center" -> showLightPoint("center")
+                "top_mid" -> showLightPoint("top_mid")
+                "left_mid" -> showLightPoint("left_mid")
+                "bottom_mid" -> showLightPoint("bottom_mid")
+                "right_mid" -> showLightPoint("right_mid")
+                else -> {
+                    // Existing number command processing
+                    val commandNum = command.toIntOrNull() ?: return
+                    when (commandNum) {
+                        in 1..20 -> processSectorInput(commandNum)
+                        in 21..25 -> processButtonInput(commandNum)
+                    }
+                }
             }
 
             invalidate() // Trigger redraw
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+    private fun showLightPoint(position: String) {
+        lightPointPosition = position
+        lightPointStartTime = System.currentTimeMillis()
+
+        // Schedule removal after 3 seconds
+        Handler(Looper.getMainLooper()).postDelayed({
+            lightPointPosition = null
+            invalidate()
+        }, LIGHT_POINT_DURATION)
     }
 
     private fun processSectorInput(sector: Int) {
