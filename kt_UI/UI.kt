@@ -557,19 +557,21 @@ class AACKeyboardView @JvmOverloads constructor(
             val intersectionPath = Path()
             intersectionPath.op(wedgePath, circlePath, Path.Op.INTERSECT)
 
-            // Draw wedge background with highlighting
+            // Draw wedge background with highlighting - Enhanced with blue background
             val paint = Paint(paintRing).apply {
-                color = getHighlightColor(counters[buttonKey] ?: 0)
-                style = Paint.Style.FILL
+                color =  getHighlightColor(counters[buttonKey] ?: 0)
+//                style = Paint.Style.FILL
             }
+
             canvas.drawPath(intersectionPath, paint)
 
-            // Draw wedge border
+// Draw wedge border - make it less prominent when highlighted
             val borderPaint = Paint(paintBorder).apply {
                 style = Paint.Style.STROKE
+                // Reduce border opacity when button is highlighted
+                alpha = if ((counters[buttonKey] ?: 0) > 0) 128 else 255
             }
             canvas.drawPath(intersectionPath, borderPaint)
-
             // Calculate text position (center of the wedge)
             val textX = when {
                 cornerX == squareLeft -> squareLeft + halfSide * 0.5f  // Move text more toward center
