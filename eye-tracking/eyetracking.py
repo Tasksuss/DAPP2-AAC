@@ -33,7 +33,7 @@ def estimate_eye_closed(eye_frame):
     black_pixels = np.sum(thresh == 0)
     total_pixels = thresh.size
     darkness_ratio = black_pixels / total_pixels
-    # cv2.imshow('filter', thresh)
+    cv2.imshow('filter', thresh)
 
     return darkness_ratio > 0.7  # Adjust this threshold as needed
 
@@ -86,7 +86,7 @@ def track_pupil(eye_frame, initial_threshold=30):
     if best_pupil:
         cv2.circle(eye_frame, best_pupil, 3, (255, 0, 0), -1)
 
-    # cv2.imshow('gray', thresh_img)
+    cv2.imshow('gray', thresh_img)
 
     return best_pupil
 
@@ -149,7 +149,7 @@ def main():
                 center_y = eh // 2
                 rel_x = 1 - pcx / (crop_x2 - crop_x1)
                 rel_y = 1 - pcy / (crop_y2 - crop_y1)
-                # cv2.imshow('Tracked Eye Only', eye_frame)
+                cv2.imshow('Tracked Eye Only', eye_frame)
                 yield rel_x, rel_y
 
 
