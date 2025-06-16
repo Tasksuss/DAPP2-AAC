@@ -7,6 +7,7 @@ import math
 CALIBRATION_FILE = "calibration_data.json"
 corner_labels = ["center", "top_mid", "left_mid", "bottom_mid", "right_mid"]
 
+
 def classify_point(x, y):
     a = 1
     cx, cy = 0.5, 0.5
@@ -14,32 +15,66 @@ def classify_point(x, y):
     dy = y - cy
     dist = math.hypot(dx, dy)
 
-    inner_radius = 0.15 * a
-    outer_radius = 0.5 * a
+    inner_radius = 0.25 * a
+    outer_radius = 0.47 * a
 
     if dist <= inner_radius:
-        return "9"
+        return "25"
+
     elif dist <= outer_radius:
         angle = math.degrees(math.atan2(dy, dx)) % 360
-        if 45 <= angle < 135:
+        if 0 <= angle < 36:
             return "1"
-        elif 135 <= angle < 225:
-            return "4"
-        elif 225 <= angle < 315:
-            return "3"
-        else:
+        elif 36 <= angle < 45:
             return "2"
+        elif 45 <= angle < 360 / 7:
+            return "3"
+        elif 360 / 7 <= angle < 72:
+            return "4"
+        elif 72 <= angle < 2 * 360 / 7:
+            return "5"
+        elif 2 * 360 / 7 <= angle < 108:
+            return "6"
+        elif 108 <= angle < 135:
+            return "7"
+        elif 135 <= angle < 144:
+            return "8"
+        elif 144 <= angle < 3 * 360 / 7:
+            return "9"
+        elif 3 * 360 / 7 <= angle < 180:
+            return "10"
+        elif 180 <= angle < 4 * 360 / 7:
+            return "11"
+        elif 4 * 360 / 7 <= angle < 216:
+            return "12"
+        elif 216 <= angle < 225:
+            return "13"
+        elif 225 <= angle < 252:
+            return "14"
+        elif 252 <= angle < 5 * 360 / 7:
+            return "15"
+        elif 5 * 360 / 7 <= angle < 288:
+            return "16"
+        elif 288 <= angle < 6 * 360 / 7:
+            return "17"
+        elif 6 * 360 / 7 <= angle < 315:
+            return "18"
+        elif 315 <= angle < 324:
+            return "19"
+        else:
+            return "20"
     else:
         if x < 0.5 and y < 0.5:
-            return "7"
+            return "23"
         elif x > 0.5 and y < 0.5:
-            return "8"
+            return "24"
         elif x < 0.5 and y > 0.5:
-            return "5"
+            return "21"
         elif x > 0.5 and y > 0.5:
-            return ("6")
+            return "22"
         else:
             return "outside"
+
 
 class Calibration:
     def __init__(self):
@@ -49,28 +84,15 @@ class Calibration:
                 self.corners = json.load(f)
 
     def calibrate(self, gaze_generator):
-        while True:
-            self.corners = {}
-            for label in corner_labels:
-                print(f"\nLook at the {label.replace('_', ' ')}...")
-                for i in range(3, 0, -1):
-                    print(f"Capturing in {i}...", end="\r")
-                    time.sleep(1)
-                rel_x, rel_y = next(gaze_generator)
-                self.corners[label] = {"x": rel_x, "y": rel_y}
-                print(f"Recorded {label}: ({rel_x:.3f}, {rel_y:.3f})")
-
-            cx, cy = self.corners["center"]["x"], self.corners["center"]["y"]
-            tx, ty = self.corners["top_mid"]["x"], self.corners["top_mid"]["y"]
-            lx, ly = self.corners["left_mid"]["x"], self.corners["left_mid"]["y"]
-            bx, by = self.corners["bottom_mid"]["x"], self.corners["bottom_mid"]["y"]
-            rx, ry = self.corners["right_mid"]["x"], self.corners["right_mid"]["y"]
-
-            if ty > cy and lx < cx and by < cy and rx > cx:
-                break
-            else:
-                print("[WARNING] Calibration data invalid. Please try again.\n")
-
+        self.corners = {}
+        for label in corner_labels:
+            print(f"\nLook at the {label.replace('_', ' ')}...")
+            for i in range(3, 0, -1):
+                print(f"Capturing in {i}...", end="\r")
+                time.sleep(1)
+            rel_x, rel_y = next(gaze_generator)
+            self.corners[label] = {"x": rel_x, "y": rel_y}
+            print(f"Recorded {label}: ({rel_x:.3f}, {rel_y:.3f})")
         with open(CALIBRATION_FILE, 'w') as f:
             json.dump(self.corners, f)
             print("[INFO] Calibration data saved.")
@@ -91,7 +113,6 @@ class Calibration:
         bx, by = bottom_mid["x"], bottom_mid["y"]
         rx, ry = right_mid["x"], right_mid["y"]
 
-
         dx = rel_x - cx
         dy = rel_y - cy
 
@@ -111,6 +132,7 @@ class Calibration:
         calibrated_y = max(0.0, min(1.0, 0.5 + norm_y / 2))
 
         return calibrated_x, calibrated_y
+
 
 if __name__ == "__main__":
     stream = gaze_stream()
@@ -139,7 +161,6 @@ if __name__ == "__main__":
             cal_x, cal_y = calib.transform_coordinates(rel_x, rel_y)
             region = classify_point(cal_x, cal_y)
             print(region)
-            input("")
-            # time.sleep(0.5)
+            time.sleep(0.5)
     except KeyboardInterrupt:
         print("\n[INFO] Gaze processing stopped.")
