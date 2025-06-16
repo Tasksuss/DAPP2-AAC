@@ -14,30 +14,30 @@ def classify_point(x, y):
     dy = y - cy
     dist = math.hypot(dx, dy)
 
-    inner_radius = 0.25 * a
-    outer_radius = 0.47 * a
+    inner_radius = 0.15 * a
+    outer_radius = 0.5 * a
 
     if dist <= inner_radius:
-        return "inner circle"
+        return "9"
     elif dist <= outer_radius:
         angle = math.degrees(math.atan2(dy, dx)) % 360
         if 45 <= angle < 135:
-            return "top ring"
+            return "1"
         elif 135 <= angle < 225:
-            return "left ring"
+            return "4"
         elif 225 <= angle < 315:
-            return "bottom ring"
+            return "3"
         else:
-            return "right ring"
+            return "2"
     else:
         if x < 0.5 and y < 0.5:
-            return "bottom-left (X)"
+            return "7"
         elif x > 0.5 and y < 0.5:
-            return "bottom-right (✓)"
+            return "8"
         elif x < 0.5 and y > 0.5:
-            return "top-left (NUM)"
+            return "5"
         elif x > 0.5 and y > 0.5:
-            return "top-right (⟳)"
+            return ("6")
         else:
             return "outside"
 
@@ -49,15 +49,28 @@ class Calibration:
                 self.corners = json.load(f)
 
     def calibrate(self, gaze_generator):
-        self.corners = {}
-        for label in corner_labels:
-            print(f"\nLook at the {label.replace('_', ' ')}...")
-            for i in range(3, 0, -1):
-                print(f"Capturing in {i}...", end="\r")
-                time.sleep(1)
-            rel_x, rel_y = next(gaze_generator)
-            self.corners[label] = {"x": rel_x, "y": rel_y}
-            print(f"Recorded {label}: ({rel_x:.3f}, {rel_y:.3f})")
+        while True:
+            self.corners = {}
+            for label in corner_labels:
+                print(f"\nLook at the {label.replace('_', ' ')}...")
+                for i in range(3, 0, -1):
+                    print(f"Capturing in {i}...", end="\r")
+                    time.sleep(1)
+                rel_x, rel_y = next(gaze_generator)
+                self.corners[label] = {"x": rel_x, "y": rel_y}
+                print(f"Recorded {label}: ({rel_x:.3f}, {rel_y:.3f})")
+
+            cx, cy = self.corners["center"]["x"], self.corners["center"]["y"]
+            tx, ty = self.corners["top_mid"]["x"], self.corners["top_mid"]["y"]
+            lx, ly = self.corners["left_mid"]["x"], self.corners["left_mid"]["y"]
+            bx, by = self.corners["bottom_mid"]["x"], self.corners["bottom_mid"]["y"]
+            rx, ry = self.corners["right_mid"]["x"], self.corners["right_mid"]["y"]
+
+            if ty > cy and lx < cx and by < cy and rx > cx:
+                break
+            else:
+                print("[WARNING] Calibration data invalid. Please try again.\n")
+
         with open(CALIBRATION_FILE, 'w') as f:
             json.dump(self.corners, f)
             print("[INFO] Calibration data saved.")
@@ -77,6 +90,7 @@ class Calibration:
         lx, ly = left_mid["x"], left_mid["y"]
         bx, by = bottom_mid["x"], bottom_mid["y"]
         rx, ry = right_mid["x"], right_mid["y"]
+
 
         dx = rel_x - cx
         dy = rel_y - cy
@@ -125,6 +139,7 @@ if __name__ == "__main__":
             cal_x, cal_y = calib.transform_coordinates(rel_x, rel_y)
             region = classify_point(cal_x, cal_y)
             print(region)
-            time.sleep(0.5)
+            input("")
+            # time.sleep(0.5)
     except KeyboardInterrupt:
         print("\n[INFO] Gaze processing stopped.")
