@@ -8,7 +8,7 @@ import os
 import math
 import re
 import socket
-from calibration import region
+
 ### ---------- RegionReceiver ----------
 class RegionReceiver:
     def __init__(self, callback=None):
@@ -202,9 +202,56 @@ class AAC_GUI():
         self.compute_character_positions()
         self.setup_UI()
 
+        self.region_receiver = RegionReceiver(callback=self.process_command)
+        self.region_receiver.start()
+
         # Start command input thread
-        self.command_thread = threading.Thread(target=self.command_listener, daemon=True)
-        self.command_thread.start()
+        # self.command_thread = threading.Thread(target=self.command_listener, daemon=True)
+        # self.command_thread.start()
+
+    def show_calibration_point(self, position: str) -> None:
+        """
+        Show a yellow light point at the specified calibration position for 3 seconds
+        position: "center", "top_mid", "left_mid", "bottom_mid", "right_mid"
+        """
+        # Define positions (these match the calibration positions)
+        positions = {
+            "center": (250, 250),  # Center of the 500x500 canvas
+            "top_mid": (250, 100),  # Top middle
+            "left_mid": (100, 250),  # Left middle
+            "bottom_mid": (250, 400),  # Bottom middle
+            "right_mid": (400, 250)  # Right middle
+        }
+
+        if position not in positions:
+            print(f"[WARNING] Unknown calibration position: {position}")
+            return
+
+        x, y = positions[position]
+
+        # Create yellow circle (light point)
+        point_radius = 15  # Adjust size as needed
+        point_id = self.canvas.create_oval(
+            x - point_radius, y - point_radius,
+            x + point_radius, y + point_radius,
+            fill="yellow",
+            outline="orange",
+            width=3,
+            tags="calibration_point"
+        )
+
+        print(f"[INFO] Showing yellow light at {position} for 3 seconds")
+
+        # Remove the point after 3 seconds
+        def remove_point():
+            try:
+                self.canvas.delete(point_id)
+                print(f"[INFO] Removed yellow light from {position}")
+            except:
+                pass  # Point might already be deleted
+
+        # Schedule removal after 3000ms (3 seconds)
+        self.root.after(3000, remove_point)
 
     def get_highlight_color(self, counter: int) -> str:
         """Get the appropriate highlight color based on counter value and alpha channel support"""
@@ -887,24 +934,30 @@ class AAC_GUI():
         print("24: Confirm/text-to-speech (bottom-right corner)")
         print("25: Space/decimal point (center circle)")
         print("Type 'exit' to quit\n")
-        cmd = region
+        # cmd = region
 
 ### ---------- receive ----------
 
     def process_command(self, cmd: str):
         """
-        NEW: Process the received command for 20-sector system
+        Process the received command for 20-sector system or calibration points
         """
         try:
             if cmd.lower() == 'exit':
                 self.root.quit()
                 return
 
-            # Parse the command
+            # Check if it's a calibration position command
+            calibration_positions = ["center", "top_mid", "left_mid", "bottom_mid", "right_mid"]
+            if cmd.lower() in calibration_positions:
+                self.show_calibration_point(cmd.lower())
+                return
+
+            # Parse the command as number
             try:
                 command_num = int(cmd)
             except ValueError:
-                print("Invalid command. Please use numbers 1-25")
+                print(f"Invalid command: {cmd}. Please use numbers 1-25 or calibration positions")
                 self.dim_current_selection()
                 return
 
@@ -921,7 +974,6 @@ class AAC_GUI():
 
         except Exception as e:
             print(f"Error in process_command: {e}")
-
     @staticmethod
     def tts(input_text: str) -> None:
         """Converts text to speech using gTTS and plays it with pygame."""

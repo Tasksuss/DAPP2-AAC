@@ -3,10 +3,20 @@ import os
 import time
 from eyetracking import main as gaze_stream
 import math
+import socket
 
 CALIBRATION_FILE = "calibration_data.json"
 corner_labels = ["center", "top_mid", "left_mid", "bottom_mid", "right_mid"]
 
+def send_region_to_ui(region_value, host='192.0.0.2', port=5051):
+    """Send region value to UI via socket"""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((host, port))
+            s.sendall(f"{region_value}\n".encode())
+            print(f"[INFO] Sent region {region_value} to UI")
+    except Exception as e:
+        print(f"[ERROR] Failed to send region to UI: {e}")
 
 def classify_point(x, y):
     a = 1
@@ -156,11 +166,16 @@ if __name__ == "__main__":
         print("[INFO] New calibration data saved.")
 
     print("\n[INFO] Starting live gaze processing (press Ctrl+C to stop):")
+    print("[INFO] Make sure UI.py is running to receive region data...")
+
     try:
         for rel_x, rel_y in stream:
             cal_x, cal_y = calib.transform_coordinates(rel_x, rel_y)
             region = classify_point(cal_x, cal_y)
-            print(region)
+            print(f"Region: {region}")
+
+            # Send region to UI
+            send_region_to_ui(region)
             time.sleep(0.5)
     except KeyboardInterrupt:
         print("\n[INFO] Gaze processing stopped.")
