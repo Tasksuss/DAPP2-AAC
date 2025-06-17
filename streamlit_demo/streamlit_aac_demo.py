@@ -277,7 +277,7 @@ def main():
         #    <h4 style="margin-bottom: 0.5rem;">Video Coming Soon</h4>
         #    <p>IMU Motion Control Demo</p>
         #</div>
-        """, unsafe_allow_html=True)
+        #""", unsafe_allow_html=True)
         """
         
         st.markdown("""
