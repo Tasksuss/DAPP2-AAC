@@ -267,13 +267,18 @@ def main():
         """, unsafe_allow_html=True)
         
         # IMU demo placeholder
-        st.markdown("""
-        <div class="placeholder-video">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🎬</div>
-            <h4 style="margin-bottom: 0.5rem;">Video Coming Soon</h4>
-            <p>IMU Motion Control Demo</p>
-        </div>
+        youtube_embed = get_youtube_embed("https://youtu.be/MtpgdY0GcJI?si=PeeesH3wK1X3FBPq", width = "100%", height = "300")
+        st.markdown(youtube_embed, unsafe_allow_html=True)
+
+        """
+        #st.markdown("""
+        #<div class="placeholder-video">
+        #    <div style="font-size: 3rem; margin-bottom: 1rem;">🎬</div>
+        #    <h4 style="margin-bottom: 0.5rem;">Video Coming Soon</h4>
+        #    <p>IMU Motion Control Demo</p>
+        #</div>
         """, unsafe_allow_html=True)
+        """
         
         st.markdown("""
         <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.5;">
