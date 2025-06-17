@@ -302,7 +302,7 @@ def main():
     with col1:
         st.markdown("""
         <div class="feature-card">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">👁️</div>
+            <div style="font-size: 3rem; margin-bottom: 1rem;">"👁️"</div>
             <h3 style="color: #1e293b; margin-bottom: 1rem;">Precision Eye-Tracking</h3>
             <p style="color: #64748b; line-height: 1.6;">
             Advanced computer vision algorithms detect and track eye movements with 
