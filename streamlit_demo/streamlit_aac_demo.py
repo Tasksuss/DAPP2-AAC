@@ -277,7 +277,7 @@ def main():
         #    <h4 style="margin-bottom: 0.5rem;">Video Coming Soon</h4>
         #    <p>IMU Motion Control Demo</p>
         #</div>
-        #""", unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
         """
         
         st.markdown("""
@@ -302,7 +302,7 @@ def main():
     with col1:
         st.markdown("""
         <div class="feature-card">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">"👁️"</div>
+            <div style="font-size: 3rem; margin-bottom: 1rem;">👁️</div>
             <h3 style="color: #1e293b; margin-bottom: 1rem;">Precision Eye-Tracking</h3>
             <p style="color: #64748b; line-height: 1.6;">
             Advanced computer vision algorithms detect and track eye movements with 
@@ -314,7 +314,7 @@ def main():
     with col2:
         st.markdown("""
         <div class="feature-card">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">"🎯"</div>
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
             <h3 style="color: #1e293b; margin-bottom: 1rem;">Circular Interface Design</h3>
             <p style="color: #64748b; line-height: 1.6;">
             Ergonomically designed circular layout optimizes eye movement patterns 
@@ -326,7 +326,7 @@ def main():
     with col3:
         st.markdown("""
         <div class="feature-card">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">"🔊"</div>
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔊</div>
             <h3 style="color: #1e293b; margin-bottom: 1rem;">Real-Time Text-to-Speech</h3>
             <p style="color: #64748b; line-height: 1.6;">
             Instant voice synthesis converts typed text to natural-sounding speech, 
@@ -338,7 +338,7 @@ def main():
     with col4:
         st.markdown("""
         <div class="feature-card">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">"⚡"</div>
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
             <h3 style="color: #1e293b; margin-bottom: 1rem;">High-Speed Communication</h3>
             <p style="color: #64748b; line-height: 1.6;">
             Optimized selection algorithms achieve communication speeds of 
