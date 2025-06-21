@@ -4,20 +4,28 @@ import cv2
 import dlib
 from .eye import Eye
 from .calibration import Calibration
+from .screen_calibration import ScreenCalibration
+from .region_classifier import RegionClassifier
+import socket
+import time
 
 
 class GazeTracking(object):
     """
-    This class tracks the user's gaze.
-    It provides useful information like the position of the eyes
-    and pupils and allows to know if the eyes are open or closed
+    Enhanced gaze tracking with screen coordinates and 25-region classification
     """
 
-    def __init__(self):
+    def __init__(self, screen_width=1920, screen_height=1080):
         self.frame = None
         self.eye_left = None
         self.eye_right = None
         self.calibration = Calibration()
+        self.screen_calibration = ScreenCalibration(screen_width, screen_height)
+        self.region_classifier = RegionClassifier()
+
+        # Socket for sending region data to UI
+        self.ui_host = '192.0.0.2'
+        self.ui_port = 5051
 
         # _face_detector is used to detect faces
         self._face_detector = dlib.get_frontal_face_detector()
@@ -48,17 +56,12 @@ class GazeTracking(object):
             landmarks = self._predictor(frame, faces[0])
             self.eye_left = Eye(frame, landmarks, 0, self.calibration)
             self.eye_right = Eye(frame, landmarks, 1, self.calibration)
-
         except IndexError:
             self.eye_left = None
             self.eye_right = None
 
     def refresh(self, frame):
-        """Refreshes the frame and analyzes it.
-
-        Arguments:
-            frame (numpy.ndarray): The frame to analyze
-        """
+        """Refreshes the frame and analyzes it."""
         self.frame = frame
         self._analyze()
 
@@ -77,26 +80,95 @@ class GazeTracking(object):
             return (x, y)
 
     def horizontal_ratio(self):
-        """Returns a number between 0.0 and 1.0 that indicates the
-        horizontal direction of the gaze. The extreme right is 0.0,
-        the center is 0.5 and the extreme left is 1.0
-        """
+        """Returns a number between 0.0 and 1.0 for horizontal gaze direction"""
         if self.pupils_located:
             pupil_left = self.eye_left.pupil.x / (self.eye_left.center[0] * 2 - 10)
             pupil_right = self.eye_right.pupil.x / (self.eye_right.center[0] * 2 - 10)
             return (pupil_left + pupil_right) / 2
-            # return (pupil_left)
 
     def vertical_ratio(self):
-        """Returns a number between 0.0 and 1.0 that indicates the
-        vertical direction of the gaze. The extreme top is 0.0,
-        the center is 0.5 and the extreme bottom is 1.0
-        """
+        """Returns a number between 0.0 and 1.0 for vertical gaze direction"""
         if self.pupils_located:
             pupil_left = self.eye_left.pupil.y / (self.eye_left.center[1] * 2 - 10)
             pupil_right = self.eye_right.pupil.y / (self.eye_right.center[1] * 2 - 10)
             return (pupil_left + pupil_right) / 2
 
+    def get_normalized_coordinates(self):
+        """Get normalized coordinates (0.0-1.0) for region classification"""
+        h_ratio = self.horizontal_ratio()
+        v_ratio = self.vertical_ratio()
+
+        if h_ratio is None or v_ratio is None:
+            return None, None
+
+        # Clamp to 0.0-1.0 range
+        norm_x = max(0.0, min(1.0, h_ratio))
+        norm_y = max(0.0, min(1.0, v_ratio))
+
+        return norm_x, norm_y
+
+    def get_region(self):
+        """Get the current 25-region classification"""
+        norm_x, norm_y = self.get_normalized_coordinates()
+
+        if norm_x is None or norm_y is None:
+            return None
+
+        return self.region_classifier.classify_point(norm_x, norm_y)
+
+    def get_region_name(self):
+        """Get human-readable region name"""
+        region = self.get_region()
+        if region:
+            return self.region_classifier.get_region_name(region)
+        return "unknown"
+
+    def send_region_to_ui(self, region_value):
+        """Send region value to UI via socket"""
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(1.0)  # 1 second timeout
+                s.connect((self.ui_host, self.ui_port))
+                s.sendall(f"{region_value}\n".encode())
+                print(f"[INFO] Sent region {region_value} to UI")
+                return True
+        except Exception as e:
+            print(f"[ERROR] Failed to send region to UI: {e}")
+            return False
+
+    def get_screen_coordinates(self):
+        """Get predicted screen coordinates"""
+        if not self.pupils_located:
+            return None
+
+        h_ratio = self.horizontal_ratio()
+        v_ratio = self.vertical_ratio()
+        left_pupil = self.pupil_left_coords()
+        right_pupil = self.pupil_right_coords()
+
+        return self.screen_calibration.predict_screen_position(
+            h_ratio, v_ratio, left_pupil, right_pupil
+        )
+
+    def add_calibration_point(self, screen_x, screen_y):
+        """Add calibration point during calibration process"""
+        if not self.pupils_located:
+            return False
+
+        self.screen_calibration.add_calibration_point(
+            screen_x, screen_y,
+            self.pupil_left_coords(),
+            self.pupil_right_coords(),
+            self.horizontal_ratio(),
+            self.vertical_ratio()
+        )
+        return True
+
+    def complete_calibration(self):
+        """Complete the calibration process"""
+        return self.screen_calibration.calculate_transformation()
+
+    # Original methods for compatibility
     def is_right(self):
         """Returns true if the user is looking to the right"""
         if self.pupils_located:
