@@ -267,13 +267,8 @@ def main():
         """, unsafe_allow_html=True)
         
         # IMU demo placeholder
-        st.markdown("""
-        <div class="placeholder-video">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🎬</div>
-            <h4 style="margin-bottom: 0.5rem;">Video Coming Soon</h4>
-            <p>IMU Motion Control Demo</p>
-        </div>
-        """, unsafe_allow_html=True)
+        youtube_embed = get_youtube_embed("https://youtu.be/MtpgdY0GcJI?si=PeeesH3wK1X3FBPq", width = "100%", height = "300")
+        st.markdown(youtube_embed, unsafe_allow_html=True)
         
         st.markdown("""
         <p style="color: #64748b; text-align: center; margin-top: 1rem; line-height: 1.5;">
@@ -337,7 +332,7 @@ def main():
             <h3 style="color: #1e293b; margin-bottom: 1rem;">High-Speed Communication</h3>
             <p style="color: #64748b; line-height: 1.6;">
             Optimized selection algorithms achieve communication speeds of 
-            up to 15-20 words per minute with 95%+ accuracy.
+            up to 15-20 characters per minute with 60-80%+ accuracy.
             </p>
         </div>
         """, unsafe_allow_html=True)
@@ -463,8 +458,8 @@ def main():
     with col1:
         st.metric(
             label="Selection Accuracy",
-            value="95%+",
-            delta="Industry Leading"
+            value="60-80%+",
+            delta="Tailored Algorithm"
         )
     
     with col2:
@@ -484,7 +479,7 @@ def main():
     with col4:
         st.metric(
             label="Eye-Track Frequency",
-            value="30 Hz",
+            value="2-10 Hz",
             delta="Smooth tracking"
         )
 
