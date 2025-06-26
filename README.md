@@ -17,8 +17,8 @@ Ultimately, this wearable AAC device represents a significant step forward in pr
 
 References
 
-    [1]	    National Institute of Neurological Disorders and Stroke. Cerebral Palsy. [Internet]. 2025 [cited 2025 Jun 17]. Available from: https://www.ninds.nih.gov/health-information/disorders/cerebral-palsy 
-    [2]     Graham HK, Rosenbaum P, Paneth N, Dan B, Lin JP, Damiano DL, et al. Cerebral palsy. Nature Reviews Disease Primers [Internet]. 2016 Jan 7;2(1) [cited 2025 Jun 17]. Available from: https://www.nature.com/articles/nrdp201582 
+    [1] National Institute of Neurological Disorders and Stroke. Cerebral Palsy. [Internet]. 2025 [cited 2025 Jun 17]. Available from: https://www.ninds.nih.gov/health-information/disorders/cerebral-palsy 
+    [2] Graham HK, Rosenbaum P, Paneth N, Dan B, Lin JP, Damiano DL, et al. Cerebral palsy. Nature Reviews Disease Primers [Internet]. 2016 Jan 7;2(1) [cited 2025 Jun 17]. Available from: https://www.nature.com/articles/nrdp201582 
     [3]     Rubio‐Carbonero, G. Communication in Persons with Acquired Speech Impairment: The Role of Family as Language Brokers. Journal of Linguistic Anthropology, 32(1), pp.161–181. 2021 [cited 2025 Jun 17] Available from: https://doi.org/10.1111/jola.12340
     [4]	RCSLT. Communication access UK [Internet]. 2025. [cited 2025 Jun 17] Available from: https://www.rcslt.org/policy-and-influencing/communication-access-uk/
     [5] 	Larrazabal M. Speech Disorders in Cerebral Palsy Explained. [Internet]. Better Speech. 2022 [cited 2025 Jun 17] Available from: https://www.betterspeech.com/post/speech-and-language-disorders-among-those-with-cerebral-palsy
