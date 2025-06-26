@@ -15,9 +15,11 @@ The developed device has successfully met the key requirements outlined at the s
     
 Ultimately, this wearable AAC device represents a significant step forward in providing individuals with CP an accessible, efficient, and user-centric communication solution, promoting independence and improved social interactions.
 
-    OpenCV Meanshift and CAMshift: https://docs.opencv.org/3.4/d7/d00/tutorial_meanshift.html
-    
-    Filterpy Package: https://filterpy.readthedocs.io/en/latest/
+References
+
+    [1] National Institute of Neurological Disorders and Stroke. Cerebral Palsy. [Internet]. 2025 [cited 2025 Jun 17]. Available from: https://www.ninds.nih.gov/health-information/disorders/cerebral-palsy 
+    [2] Graham HK, Rosenbaum P, Paneth N, Dan B, Lin JP, Damiano DL, et al. Cerebral palsy. Nature Reviews Disease Primers [Internet]. 2016 Jan 7;2(1) [cited 2025 Jun 17]. Available from: https://www.nature.com/articles/nrdp201582 
+
 
 
     
