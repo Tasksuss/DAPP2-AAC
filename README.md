@@ -17,15 +17,15 @@ Ultimately, this wearable AAC device represents a significant step forward in pr
 
 References
 
-    [1]	National Institute of Neurological Disorders and Stroke. Cerebral Palsy. [Internet]. 2025 [cited 2025 Jun 17]. Available from: https://www.ninds.nih.gov/health-information/disorders/cerebral-palsy 
-    [2] Graham HK, Rosenbaum P, Paneth N, Dan B, Lin JP, Damiano DL, et al. Cerebral palsy. Nature Reviews Disease Primers [Internet]. 2016 Jan 7;2(1) [cited 2025 Jun 17]. Available from: https://www.nature.com/articles/nrdp201582 
-    [3] Rubio‐Carbonero, G. Communication in Persons with Acquired Speech Impairment: The Role of Family as Language Brokers. Journal of Linguistic Anthropology, 32(1), pp.161–181. 2021 [cited 2025 Jun 17] Available from: https://doi.org/10.1111/jola.12340
+    [1]	    National Institute of Neurological Disorders and Stroke. Cerebral Palsy. [Internet]. 2025 [cited 2025 Jun 17]. Available from: https://www.ninds.nih.gov/health-information/disorders/cerebral-palsy 
+    [2]     Graham HK, Rosenbaum P, Paneth N, Dan B, Lin JP, Damiano DL, et al. Cerebral palsy. Nature Reviews Disease Primers [Internet]. 2016 Jan 7;2(1) [cited 2025 Jun 17]. Available from: https://www.nature.com/articles/nrdp201582 
+    [3]     Rubio‐Carbonero, G. Communication in Persons with Acquired Speech Impairment: The Role of Family as Language Brokers. Journal of Linguistic Anthropology, 32(1), pp.161–181. 2021 [cited 2025 Jun 17] Available from: https://doi.org/10.1111/jola.12340
     [4]	RCSLT. Communication access UK [Internet]. 2025. [cited 2025 Jun 17] Available from: https://www.rcslt.org/policy-and-influencing/communication-access-uk/
     [5] 	Larrazabal M. Speech Disorders in Cerebral Palsy Explained. [Internet]. Better Speech. 2022 [cited 2025 Jun 17] Available from: https://www.betterspeech.com/post/speech-and-language-disorders-among-those-with-cerebral-palsy
-    [6]	Cerebral Palsy Research Foundation - USA. Facts about Cerebral Palsy | Cerebral Palsy Research Foundation - USA [Internet]. Cparf.org. 2018. [cited 2025 Jun 17]. Available from: https://cparf.org/what-is-cerebral-palsy/facts-about-cerebral-palsy/
-    [7]	National Health Service (NHS). Overview | Cerebral Palsy. [Internet]. 2023 [cited 2025 Jun 17] Available from: https://www.nhs.uk/conditions/cerebral-palsy/ 
-    [8]	NHS. Alternative and Augmentative Communication (AAC). [Internet]. Children’s Integrated Therapies. 2021. [cited 2025 Jun 17]. Available from: https://www.oxfordhealth.nhs.uk/cit/resources/aac/
-    [9]	Our Communication Boards [Internet]. Create Visual Aids Ltd. 2025 [cited 2025 Jun 17]. Available from: https://www.createvisualaids.co.uk/collections/communication-boards
+    [6]	    Cerebral Palsy Research Foundation - USA. Facts about Cerebral Palsy | Cerebral Palsy Research Foundation - USA [Internet]. Cparf.org. 2018. [cited 2025 Jun 17]. Available from: https://cparf.org/what-is-cerebral-palsy/facts-about-cerebral-palsy/
+    [7]	    National Health Service (NHS). Overview | Cerebral Palsy. [Internet]. 2023 [cited 2025 Jun 17] Available from: https://www.nhs.uk/conditions/cerebral-palsy/ 
+    [8]	    NHS. Alternative and Augmentative Communication (AAC). [Internet]. Children’s Integrated Therapies. 2021. [cited 2025 Jun 17]. Available from: https://www.oxfordhealth.nhs.uk/cit/resources/aac/
+    [9]	    Our Communication Boards [Internet]. Create Visual Aids Ltd. 2025 [cited 2025 Jun 17]. Available from: https://www.createvisualaids.co.uk/collections/communication-boards
     [10]	Totally Tactile Communicator [Internet]. Liberator.co.uk. 2025 [cited 2025 Jun 17]. Available from: https://www.liberator.co.uk/totally-tactile-communicator
     [11]	GoTalk 20+ Lite Touch [Internet]. Liberator.co.uk. 2025 [cited 2025 Jun 17]. Available from: https://www.liberator.co.uk/gotalk-20-lite-touch
     [12]	NovaChat 10 Active [Internet]. Liberator.co.uk. 2025. [cited 2025 Jun 17]. Available from: https://www.liberator.co.uk/nova-chat-10.7-active
@@ -40,14 +40,14 @@ References
     [21]	BME Group 3. BME Group 3 – PSD [undergraduate project report]. London: Imperial College London; 2025.
     [22]	Radcliffe A.J. Tolerance, Clearance and Fit. [Lecture Slides] Imperial College London.
     [23]	Essentra Components. A guide to butt hinges [Internet]. Essentracomponents.com. Essentra Components. 2022 [cited 2025 Jun 17]. Available from: https://www.essentracomponents.com/en-gb/news/solutions/access-hardware/a-guide-to-butt-hinges
-    [24] Raspberry Pi Ltd. Raspberry Pi Zero 2 W [Internet]. 2024 Apr. Available from: https://datasheets.raspberrypi.com/rpizero2/raspberry-pi-zero-2-w-product-brief.pdf
-    [25] Google Glass Enterprise Edition 2 – main features, use cases, benefits [Internet]. nsflow.com. Available from: https://nsflow.com/blog/google-glass-enterprise-edition-2-main-features-use-cases-benefits
-    [26] Python Software Foundation. socket — Low-level networking interface [Internet]. Python 3.12.3 documentation. Python Software Foundation; 2024 [cited 2025 Jun 15]. Available from: https://docs.python.org/3/library/socket.html
-    [27] Steeper Group [Internet]. Steeper Group. Steeper Group; 2024. Available from: https://www.steepergroup.com/accessible-technology/steeper-assistive-technology-products/communication-device/lumin-i-by-smartbox/
-    [28] CAM30NXT - IntelliGaze [Internet]. Intelligaze.com. 2025 [cited 2025 Jun 18]. Available from: https://www.intelligaze.com/en/platform/cam30nxt?utm
-    [29] Orosoo M, Raash N, Treve M, M. Lahza HF, Alshammry N, Ramesh JVN, et al. Transforming English language learning: Advanced speech recognition with MLP-LSTM for personalized education. Alexandria Engineering Journal. 2025 Jan;111:21–32.
-    [30] Shah N, Singh M, Takahashi N, Naoyuki Onoe. Nonparallel Emotional Voice Conversion for Unseen Speaker-Emotion Pairs Using Dual Domain Adversarial Network & Virtual Domain Pairing. ICASSP 2022 - 2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP) [Internet]. 2023 May 5 [cited 2025 Jun 18];1–5. Available from: https://patents.google.com/patent/WO2024084330A1/en
-    [31] Web T, King G. Meta Smart Glasses for Visually Impaired People - MyVision Oxfordshire [Internet]. MyVision Oxfordshire. Technique Web; 2025 [cited 2025 Jun 17]. Available from: https://www.myvision.org.uk/meta-smart-glasses/
+    [24]     Raspberry Pi Ltd. Raspberry Pi Zero 2 W [Internet]. 2024 Apr. Available from: https://datasheets.raspberrypi.com/rpizero2/raspberry-pi-zero-2-w-product-brief.pdf
+    [25]     Google Glass Enterprise Edition 2 – main features, use cases, benefits [Internet]. nsflow.com. Available from: https://nsflow.com/blog/google-glass-enterprise-edition-2-main-features-use-cases-benefits
+    [26]     Python Software Foundation. socket — Low-level networking interface [Internet]. Python 3.12.3 documentation. Python Software Foundation; 2024 [cited 2025 Jun 15]. Available from: https://docs.python.org/3/library/socket.html
+    [27]     Steeper Group [Internet]. Steeper Group. Steeper Group; 2024. Available from: https://www.steepergroup.com/accessible-technology/steeper-assistive-technology-products/communication-device/lumin-i-by-smartbox/
+    [28]     CAM30NXT - IntelliGaze [Internet]. Intelligaze.com. 2025 [cited 2025 Jun 18]. Available from: https://www.intelligaze.com/en/platform/cam30nxt?utm
+    [29]     Orosoo M, Raash N, Treve M, M. Lahza HF, Alshammry N, Ramesh JVN, et al. Transforming English language learning: Advanced speech recognition with MLP-LSTM for personalized education. Alexandria Engineering Journal. 2025 Jan;111:21–32.
+    [30]     Shah N, Singh M, Takahashi N, Naoyuki Onoe. Nonparallel Emotional Voice Conversion for Unseen Speaker-Emotion Pairs Using Dual Domain Adversarial Network & Virtual Domain Pairing. ICASSP 2022 - 2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP) [Internet]. 2023 May 5 [cited 2025 Jun 18];1–5. Available from: https://patents.google.com/patent/WO2024084330A1/en
+    [31]     Web T, King G. Meta Smart Glasses for Visually Impaired People - MyVision Oxfordshire [Internet]. MyVision Oxfordshire. Technique Web; 2025 [cited 2025 Jun 17]. Available from: https://www.myvision.org.uk/meta-smart-glasses/
 
 Links to resources:
 
@@ -84,8 +84,8 @@ Links to resources:
     GPIO Zero, Python module, Can be used for LED control on Pi: https://gpiozero.readthedocs.io/en/stable/installing.html
 
     EyeTracking using OpenCV Blogs
-        https://medium.com/analytics-vidhya/eye-tracking-using-opencv-2f40cc09183c
-        https://medium.com/@amit25173/opencv-eye-tracking-aeb4f1b46aa3
+    https://medium.com/analytics-vidhya/eye-tracking-using-opencv-2f40cc09183c
+    https://medium.com/@amit25173/opencv-eye-tracking-aeb4f1b46aa3
 
     PyBluez, Bluetooth access: https://github.com/pybluez/pybluez
 
