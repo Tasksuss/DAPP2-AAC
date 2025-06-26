@@ -1,7 +1,7 @@
 # DAPP2-AAC
-This repository contains all scripts written for the DAPP 2 group 3 who's working the project about Wearable Augmented Alternative Communication (WAAC) Device.
+This repository contains all programs and documentations for the BME DAPP2 2025 Group 3 project on the wearable Augmented Alternative Communication (wAAC) device.
 
-Abstract
+# Abstract
 
 Speech impairments can make everyday communication a challenge, as it affects the individual’s ability to express themselves, engage in social interactions, and participate fully in everyday activities. One of the most common causes is Cerebral Palsy (CP). Cerebral Palsy is a neurological condition that impairs the motor control needed for verbal communication [1], affecting 17 million people in the world [2]. To address this, Augmentative Alternative Communication (AAC) devices were developed to provide a non-verbal means of communication. Despite their benefits, market research shows that existing AAC solutions have notable limitations, including bulkiness, impracticality, high costs, stability issues, and dependence on caregiver assistance for device mounting and operation.
 
@@ -15,7 +15,7 @@ The developed device has successfully met the key requirements outlined at the s
     
 Ultimately, this wearable AAC device represents a significant step forward in providing individuals with CP an accessible, efficient, and user-centric communication solution, promoting independence and improved social interactions.
 
-References
+# References
 
     [1] National Institute of Neurological Disorders and Stroke. Cerebral Palsy. [Internet]. 2025 [cited 2025 Jun 17]. Available from: https://www.ninds.nih.gov/health-information/disorders/cerebral-palsy 
     [2] Graham HK, Rosenbaum P, Paneth N, Dan B, Lin JP, Damiano DL, et al. Cerebral palsy. Nature Reviews Disease Primers [Internet]. 2016 Jan 7;2(1) [cited 2025 Jun 17]. Available from: https://www.nature.com/articles/nrdp201582 
