@@ -17,15 +17,15 @@ Ultimately, this wearable AAC device represents a significant step forward in pr
 
 References
 
-    [1] National Institute of Neurological Disorders and Stroke. Cerebral Palsy. [Internet]. 2025 [cited 2025 Jun 17]. Available from: https://www.ninds.nih.gov/health-information/disorders/cerebral-palsy 
-    [2] Graham HK, Rosenbaum P, Paneth N, Dan B, Lin JP, Damiano DL, et al. Cerebral palsy. Nature Reviews Disease Primers [Internet]. 2016 Jan 7;2(1) [cited 2025 Jun 17]. Available from: https://www.nature.com/articles/nrdp201582 
+    [1]     National Institute of Neurological Disorders and Stroke. Cerebral Palsy. [Internet]. 2025 [cited 2025 Jun 17]. Available from: https://www.ninds.nih.gov/health-information/disorders/cerebral-palsy 
+    [2]     Graham HK, Rosenbaum P, Paneth N, Dan B, Lin JP, Damiano DL, et al. Cerebral palsy. Nature Reviews Disease Primers [Internet]. 2016 Jan 7;2(1) [cited 2025 Jun 17]. Available from: https://www.nature.com/articles/nrdp201582 
     [3]     Rubio‐Carbonero, G. Communication in Persons with Acquired Speech Impairment: The Role of Family as Language Brokers. Journal of Linguistic Anthropology, 32(1), pp.161–181. 2021 [cited 2025 Jun 17] Available from: https://doi.org/10.1111/jola.12340
     [4]	RCSLT. Communication access UK [Internet]. 2025. [cited 2025 Jun 17] Available from: https://www.rcslt.org/policy-and-influencing/communication-access-uk/
     [5] 	Larrazabal M. Speech Disorders in Cerebral Palsy Explained. [Internet]. Better Speech. 2022 [cited 2025 Jun 17] Available from: https://www.betterspeech.com/post/speech-and-language-disorders-among-those-with-cerebral-palsy
-    [6]	    Cerebral Palsy Research Foundation - USA. Facts about Cerebral Palsy | Cerebral Palsy Research Foundation - USA [Internet]. Cparf.org. 2018. [cited 2025 Jun 17]. Available from: https://cparf.org/what-is-cerebral-palsy/facts-about-cerebral-palsy/
-    [7]	    National Health Service (NHS). Overview | Cerebral Palsy. [Internet]. 2023 [cited 2025 Jun 17] Available from: https://www.nhs.uk/conditions/cerebral-palsy/ 
-    [8]	    NHS. Alternative and Augmentative Communication (AAC). [Internet]. Children’s Integrated Therapies. 2021. [cited 2025 Jun 17]. Available from: https://www.oxfordhealth.nhs.uk/cit/resources/aac/
-    [9]	    Our Communication Boards [Internet]. Create Visual Aids Ltd. 2025 [cited 2025 Jun 17]. Available from: https://www.createvisualaids.co.uk/collections/communication-boards
+    [6]	   Cerebral Palsy Research Foundation - USA. Facts about Cerebral Palsy | Cerebral Palsy Research Foundation - USA [Internet]. Cparf.org. 2018. [cited 2025 Jun 17]. Available from: https://cparf.org/what-is-cerebral-palsy/facts-about-cerebral-palsy/
+    [7]	   National Health Service (NHS). Overview | Cerebral Palsy. [Internet]. 2023 [cited 2025 Jun 17] Available from: https://www.nhs.uk/conditions/cerebral-palsy/ 
+    [8]	   NHS. Alternative and Augmentative Communication (AAC). [Internet]. Children’s Integrated Therapies. 2021. [cited 2025 Jun 17]. Available from: https://www.oxfordhealth.nhs.uk/cit/resources/aac/
+    [9]	   Our Communication Boards [Internet]. Create Visual Aids Ltd. 2025 [cited 2025 Jun 17]. Available from: https://www.createvisualaids.co.uk/collections/communication-boards
     [10]	Totally Tactile Communicator [Internet]. Liberator.co.uk. 2025 [cited 2025 Jun 17]. Available from: https://www.liberator.co.uk/totally-tactile-communicator
     [11]	GoTalk 20+ Lite Touch [Internet]. Liberator.co.uk. 2025 [cited 2025 Jun 17]. Available from: https://www.liberator.co.uk/gotalk-20-lite-touch
     [12]	NovaChat 10 Active [Internet]. Liberator.co.uk. 2025. [cited 2025 Jun 17]. Available from: https://www.liberator.co.uk/nova-chat-10.7-active
